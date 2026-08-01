@@ -1,0 +1,119 @@
+<?xml version="1.0"?>
+<!--
+  tiny.ttl, written again in RDF/XML.  Hand-authored: a reader is a capability, and
+  its checked-in test data is invented.
+
+  The point of having both is that they must convert to the *same* corpus.  RDF/XML
+  and Turtle are two syntaxes for one graph, so a difference between these two
+  outputs is a lexer bug by definition — which is a sharper test than either file
+  alone, and the reason this one mirrors the other statement for statement.
+-->
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:ex="http://example.org/zoo#"
+         xml:base="http://example.org/zoo">
+
+  <owl:Ontology rdf:about="http://example.org/zoo#Zoo">
+    <owl:imports rdf:resource="http://example.org/zoo#Upper"/>
+  </owl:Ontology>
+
+  <owl:Class rdf:about="http://example.org/zoo#Animal"/>
+  <owl:Class rdf:about="http://example.org/zoo#Mammal">
+    <rdfs:subClassOf rdf:resource="http://example.org/zoo#Animal"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://example.org/zoo#Dog">
+    <rdfs:subClassOf rdf:resource="http://example.org/zoo#Mammal"/>
+    <rdfs:label xml:lang="en">dog</rdfs:label>
+    <rdfs:label xml:lang="fr">chien</rdfs:label>
+    <rdfs:comment>a domesticated canine</rdfs:comment>
+    <owl:disjointWith rdf:resource="http://example.org/zoo#Cat"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://example.org/zoo#Cat">
+    <rdfs:subClassOf rdf:resource="http://example.org/zoo#Mammal"/>
+  </owl:Class>
+  <owl:Class rdf:about="http://example.org/zoo#Limb"/>
+  <owl:Class rdf:about="http://example.org/zoo#Young"/>
+
+  <owl:ObjectProperty rdf:about="http://example.org/zoo#hasPart">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+    <rdfs:domain rdf:resource="http://example.org/zoo#Animal"/>
+    <rdfs:range rdf:resource="http://example.org/zoo#Limb"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://example.org/zoo#partOf">
+    <owl:inverseOf rdf:resource="http://example.org/zoo#hasPart"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://example.org/zoo#hasAncestor"/>
+  <owl:ObjectProperty rdf:about="http://example.org/zoo#hasParent">
+    <rdfs:subPropertyOf rdf:resource="http://example.org/zoo#hasAncestor"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="http://example.org/zoo#hasGrandparent">
+    <owl:propertyChainAxiom rdf:parseType="Collection">
+      <owl:ObjectProperty rdf:about="http://example.org/zoo#hasParent"/>
+      <owl:ObjectProperty rdf:about="http://example.org/zoo#hasParent"/>
+    </owl:propertyChainAxiom>
+  </owl:ObjectProperty>
+
+  <!-- a universal restriction — every part of a Dog is a Limb -->
+  <owl:Class rdf:about="http://example.org/zoo#Dog">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty rdf:resource="http://example.org/zoo#hasPart"/>
+        <owl:allValuesFrom rdf:resource="http://example.org/zoo#Limb"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+
+  <!-- a sufficient condition — anything with a Limb part is Bodied -->
+  <owl:Class rdf:about="http://example.org/zoo#Bodied">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:onProperty rdf:resource="http://example.org/zoo#hasPart"/>
+        <owl:someValuesFrom rdf:resource="http://example.org/zoo#Limb"/>
+      </owl:Restriction>
+    </owl:equivalentClass>
+  </owl:Class>
+
+  <!-- an existential superclass — no Horn reading -->
+  <owl:Class rdf:about="http://example.org/zoo#Hand">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty rdf:resource="http://example.org/zoo#hasPart"/>
+        <owl:someValuesFrom rdf:resource="http://example.org/zoo#Finger"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="http://example.org/zoo#Finger"/>
+
+  <!-- an intersection definition -->
+  <owl:Class rdf:about="http://example.org/zoo#Puppy">
+    <owl:equivalentClass>
+      <!-- rdf:Description, not owl:Class: Turtle's `[ owl:intersectionOf (…) ]` states
+           no type, and a node element that named one would add a triple the other
+           fixture does not have -->
+      <rdf:Description>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="http://example.org/zoo#Dog"/>
+          <owl:Class rdf:about="http://example.org/zoo#Young"/>
+        </owl:intersectionOf>
+      </rdf:Description>
+    </owl:equivalentClass>
+  </owl:Class>
+
+  <!-- a cardinality — no Horn reading -->
+  <owl:Class rdf:about="http://example.org/zoo#Biped">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty rdf:resource="http://example.org/zoo#hasPart"/>
+        <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</owl:minCardinality>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+
+  <ex:Dog rdf:about="http://example.org/zoo#Rover">
+    <ex:hasPart rdf:resource="http://example.org/zoo#RoverLeg"/>
+    <ex:age rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">5</ex:age>
+  </ex:Dog>
+  <ex:Limb rdf:about="http://example.org/zoo#RoverLeg"/>
+
+</rdf:RDF>

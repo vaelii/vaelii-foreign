@@ -1,0 +1,3 @@
+<http://example.org/zoo#Rex> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/zoo#Dog> <http://example.org/graph/Shelter> .
+<http://example.org/zoo#Rex> <http://example.org/zoo#age> "3"^^<http://www.w3.org/2001/XMLSchema#integer> <http://example.org/graph/Shelter> .
+<http://example.org/zoo#Dog> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/zoo#Mammal> <http://example.org/graph/Taxonomy> .

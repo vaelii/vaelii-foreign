@@ -1,0 +1,90 @@
+name: test
+
+# The reader suite: what `lein test` runs locally.
+#
+# Unlike the storage siblings, this artifact's suite runs IN-REPO: the readers are
+# exercised against a vendored fixture — the cyc-tiny CFASL unit dump under
+# test/resources — so there is no external service and no matrix. What the job
+# needs is core on the classpath, because the readers require `vaelii.impl.*` and
+# the corpus tests load into a real KB.
+#
+# The suite makes no network call and reads no KB outside test/resources; a run
+# that needs the full OpenCyc distribution is a local one, not this.
+#
+# WHERE CORE COMES FROM: `vaelii/vaelii` with the job's own token, which is what
+# a public repo reading a public repo needs and needs nothing else. A repo whose
+# core is *private* sets two things and changes no file — the repo variable
+# CORE_REPO, naming that repo, and the secret CORE_REPO_TOKEN, a PAT with read
+# access to it.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    paths-ignore: ["docs/**", "**.md", ".github/badges/**"]
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+# Least privilege: the job only reads the repo + runs the suite. A private-core
+# clone uses its own CORE_REPO_TOKEN PAT, unaffected by this.
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout vaelii-foreign
+        uses: actions/checkout@v6
+        with:
+          path: vaelii-foreign
+
+      - name: Checkout vaelii core
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ vars.CORE_REPO || 'vaelii/vaelii' }}
+          path: vaelii
+          token: ${{ secrets.CORE_REPO_TOKEN || github.token }}
+          # Don't leave the credential in vaelii/.git/config for the rest of
+          # the job (the suite runs third-party plugins/deps that could read it).
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Leiningen
+        uses: DeLaGuardo/setup-clojure@13.6.1   # bump if this tag 404s
+        with:
+          lein: latest
+
+      - name: Cache Maven deps
+        uses: actions/cache@v5
+        with:
+          path: ~/.m2
+          key: m2-${{ hashFiles('vaelii/project.clj', 'vaelii-foreign/project.clj') }}
+          restore-keys: |
+            m2-
+
+      # Deliberate, and not left over from before core was published: this installs
+      # the CHECKED-OUT core into ~/.m2, so the suite runs against core's `main`
+      # rather than the last release. The readers reach into `vaelii.impl.*`, which
+      # core is free to change between releases, so testing against the published
+      # jar would find that out one release late.
+      #
+      # It also covers the development tree, whose dependency is a snapshot version
+      # that Clojars does not carry.
+      - name: Install vaelii core
+        working-directory: vaelii
+        run: lein install
+
+      - name: Run the suite
+        working-directory: vaelii-foreign
+        run: lein test

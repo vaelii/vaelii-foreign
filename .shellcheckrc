@@ -1,0 +1,9 @@
+# ShellCheck config for the scripts/ tree. Run via scripts/lint.sh (the `lint`
+# alias) or directly: shellcheck scripts/*.sh
+
+# Follow `source`/`.` into sibling files, resolved relative to the sourcing
+# script's own directory — so update-badges.sh's optional
+# `source scripts/badge-extras.sh` is analyzed with its definitions in view
+# rather than flagged SC1091.
+external-sources=true
+source-path=SCRIPTDIR

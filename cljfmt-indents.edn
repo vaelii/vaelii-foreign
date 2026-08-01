@@ -1,0 +1,14 @@
+;; Hand-maintained cljfmt :indents for the body-macros this artifact uses.
+;;
+;; Only genuine macros belong here. `with-dump-file` and `with-assertions` read
+;; like binders and are plain functions taking a callback, so cljfmt's default
+;; call alignment is the correct one for them — an entry would misindent every
+;; call site. The test one is local; `with-deferred-settle` is core's, which is
+;; why a harvester run in this tree cannot see its :style/indent the way core's
+;; own run does.
+;;
+;; project.clj splices this into the :cljfmt :extra-indents, appended onto
+;; cljfmt's defaults (which its :indents would otherwise replace). Match is by
+;; bare macro name, regardless of ns alias — `v/with-deferred-settle` included.
+{with-deferred-settle [[:block 1]]
+ with-cleared-kb      [[:block 1]]}

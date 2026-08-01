@@ -1,0 +1,4 @@
+  1 Hand-authored WNDB records; see data.noun.
+00000020 00 a 01 wet 0 001 ! 00000022 a 0000 | covered with liquid  
+00000021 00 s 01 damp 0 001 & 00000020 a 0000 | slightly wet  
+00000022 00 a 01 dry 0 001 ! 00000020 a 0000 | free from liquid  

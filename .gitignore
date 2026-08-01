@@ -1,0 +1,24 @@
+/target/
+/classes/
+/checkouts/
+profiles.clj
+pom.xml
+pom.xml.asc
+*.jar
+*.class
+/.lein-*
+/.nrepl-port
+/.prepl-port
+.cpcache/
+.calva/
+.clj-kondo/.cache/
+.clj-kondo/imports/
+.lsp/.cache/
+# AI-helper files: stow-linked from the settings dotfiles repo, never tracked here.
+CLAUDE.local.md
+/CLAUDE.md
+.claude/
+
+# Third-party test suites and ontologies, fetched by scripts/fetch-suites.sh.
+# Cached rather than vendored: they are large, they move, and they are not ours.
+/.cache/

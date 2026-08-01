@@ -1,0 +1,46 @@
+# A hand-authored OWL fragment.  Not a slice of any real ontology: a reader is a
+# capability, and its checked-in test data is invented.
+@prefix ex:   <http://example.org/zoo#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Zoo a owl:Ontology ; owl:imports ex:Upper .
+
+ex:Animal a owl:Class .
+ex:Mammal a owl:Class ; rdfs:subClassOf ex:Animal .
+ex:Dog    a owl:Class ;
+  rdfs:subClassOf ex:Mammal ;
+  rdfs:label "dog"@en , "chien"@fr ;
+  rdfs:comment "a domesticated canine" ;
+  owl:disjointWith ex:Cat .
+ex:Cat    a owl:Class ; rdfs:subClassOf ex:Mammal .
+ex:Limb   a owl:Class .
+ex:Young  a owl:Class .
+
+ex:hasPart a owl:ObjectProperty , owl:TransitiveProperty ;
+  rdfs:domain ex:Animal ;
+  rdfs:range  ex:Limb .
+ex:partOf a owl:ObjectProperty ; owl:inverseOf ex:hasPart .
+ex:hasAncestor a owl:ObjectProperty .
+ex:hasParent   a owl:ObjectProperty ; rdfs:subPropertyOf ex:hasAncestor .
+ex:hasGrandparent a owl:ObjectProperty ;
+  owl:propertyChainAxiom ( ex:hasParent ex:hasParent ) .
+
+# a universal restriction — every part of a Dog is a Limb
+ex:Dog rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ex:hasPart ; owl:allValuesFrom ex:Limb ] .
+# a sufficient condition — anything with a Limb part is Bodied
+ex:Bodied a owl:Class ;
+  owl:equivalentClass [ a owl:Restriction ; owl:onProperty ex:hasPart ; owl:someValuesFrom ex:Limb ] .
+# an existential superclass — no Horn reading
+ex:Hand a owl:Class ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ex:hasPart ; owl:someValuesFrom ex:Finger ] .
+ex:Finger a owl:Class .
+# an intersection definition
+ex:Puppy a owl:Class ; owl:equivalentClass [ owl:intersectionOf ( ex:Dog ex:Young ) ] .
+# a cardinality — no Horn reading
+ex:Biped a owl:Class ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ex:hasPart ; owl:minCardinality 2 ] .
+
+ex:Rover a ex:Dog ; ex:hasPart ex:RoverLeg ; ex:age 5 .
+ex:RoverLeg a ex:Limb .

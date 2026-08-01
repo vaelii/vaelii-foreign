@@ -1,0 +1,74 @@
+! Hand-authored OBO stanzas.  Not a slice of the Gene Ontology or any other real
+! ontology: a reader is a capability, and its checked-in test data is invented.
+format-version: 1.2
+ontology: tiny
+default-namespace: tiny_ontology
+
+[Term]
+id: TT:0000001
+name: cellular process
+namespace: biological_process
+def: "A process at the level of a cell." [TT:curator]
+
+[Term]
+id: TT:0000002
+name: mitotic cell cycle
+namespace: biological_process
+def: "The cell cycle of a eukaryotic cell." [TT:curator]
+is_a: TT:0000001 ! cellular process
+relationship: part_of TT:0000003
+synonym: "mitosis" EXACT []
+xref: Wikipedia:Mitosis
+
+[Term]
+id: TT:0000003
+name: cell division
+namespace: biological_process
+is_a: TT:0000001
+disjoint_from: TT:0000004
+
+[Term]
+id: TT:0000004
+name: membrane
+namespace: cellular_component
+
+[Term]
+id: TT:0000005
+name: young mitotic cycle
+namespace: biological_process
+intersection_of: TT:0000002
+intersection_of: TT:0000006
+
+[Term]
+id: TT:0000006
+name: young thing
+namespace: biological_process
+
+[Term]
+id: TT:0000009
+name: obsolete thing
+is_obsolete: true
+replaced_by: TT:0000003
+
+[Typedef]
+id: part_of
+name: part of
+is_transitive: true
+inverse_of: has_part
+domain: TT:0000001
+range: TT:0000001
+
+[Typedef]
+id: has_part
+name: has part
+
+[Typedef]
+id: occurs_in
+name: occurs in
+holds_over_chain: part_of occurs_in
+
+[Instance]
+id: TT:9000001
+name: the observed division
+instance_of: TT:0000003
+property_value: part_of TT:0000002

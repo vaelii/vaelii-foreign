@@ -1,0 +1,20 @@
+;; clj-kondo configuration for vaelii-foreign.
+;;
+;; `with-cleared-kb` (vaelii.foreign.test-util) binds a KB symbol the way `let`
+;; does — `(with-cleared-kb [kb tu/fresh] …)` — and clj-kondo can't see a binding a
+;; macro introduces, so without this every `kb` inside one reads as an `Unresolved
+;; symbol`. `:lint-as` teaches it the let shape; the matching `:unresolved-symbol`
+;; exclude carries the uses `:lint-as` alone doesn't reach. Core's own config gives
+;; its wider set of KB binding macros the same treatment.
+;;
+;; `[clojure.test :refer :all]` is the one blessed refer-all (matches vaelii
+;; core's convention); exempt it so the test namespaces don't trip the
+;; refer-all linter.
+{:lint-as
+ {vaelii.foreign.test-util/with-cleared-kb clojure.core/let}
+
+ :linters
+ {:unresolved-symbol
+  {:exclude [(vaelii.foreign.test-util/with-cleared-kb)]}
+
+  :refer-all {:exclude [clojure.test]}}}

@@ -1,0 +1,16 @@
+;; What this artifact teaches vaelii to read: `kind -> the var holding its reader map`.
+;;
+;; `vaelii.impl.foreign` reads every copy of this resource on the classpath and merges
+;; them, then resolves a symbol only when something asks for that kind — so these
+;; namespaces are loaded on demand and the engine holds no compile-time reference to
+;; one.  It is edn, so this file declares a name and can never run code.
+;;
+;; Adding a format is one line here plus a `reader` var; the engine needs no change.
+;; Merging is also why a private bridge can ship its own manifest under this same name
+;; without either artifact knowing about the other — `vaelii-legacy-import` declares
+;; `:engine-dump` that way, and a build that has both reads the union.
+{:cyc-corpus     vaelii.foreign.cyc/reader
+ :rdf-graph      vaelii.foreign.rdf/reader
+ :wordnet-corpus vaelii.foreign.wordnet/reader
+ :obo-ontology   vaelii.foreign.obo/reader
+ :atomic-corpus  vaelii.foreign.atomic/reader}

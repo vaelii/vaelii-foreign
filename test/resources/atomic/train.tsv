@@ -1,0 +1,11 @@
+PersonX abandons ___ altogether	xIntent	to be selfish
+PersonX abandons ___ altogether	xEffect	none
+PersonX abandons ___ altogether	xWant	to find a new home
+PersonX abandons ___ altogether	oReact	abandoned
+PersonX abandons ___ altogether	isAfter	PersonX gets tired of it
+PersonX abandons ___ altogether	HinderedBy	PersonX feels guilty
+baseball bat	ObjectUse	hit a ball
+baseball bat	MadeUpOf	wood
+baseball bat	AtLocation	sporting goods store
+baseball bat	CapableOf	break a window
+to find a new home	xAttr	responsible

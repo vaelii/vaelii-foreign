@@ -1,0 +1,39 @@
+# Blank nodes standing for n-ary relations, in every shape the reader has to tell
+# apart.  Hand-authored: a reader is a capability, and its checked-in test data is
+# invented.
+@prefix ex:   <http://example.org/nary#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+
+# uniform — every hasJob node carries the same three qualifiers, so it flattens
+ex:Bob ex:hasJob [ ex:employer ex:Acme ; ex:role ex:Engineer ; ex:since 2020 ] .
+ex:Ann ex:hasJob [ ex:employer ex:Beta ; ex:role ex:Manager  ; ex:since 2019 ] .
+
+# uniform, and a two-slot structured value: still a tuple, at arity 3
+ex:Bob ex:address [ ex:city "Austin" ; ex:zip "78701" ] .
+
+# NOT uniform — one node has a qualifier the other lacks, so both skolemize.  Were
+# these flattened, Ann's year would land in the slot a rule reads as a name.
+ex:Bob ex:award [ ex:awardName "Prize" ; ex:year 2001 ] .
+ex:Ann ex:award [ ex:awardName "Medal" ] .
+
+# typed — the node claims to be an instance of something, which needs a term
+ex:Bob ex:membership [ a ex:Membership ; ex:org ex:Guild ; ex:level "gold" ] .
+ex:Membership a owl:Class .
+
+# shared — reached from two places, so flattening would copy it rather than move it
+ex:Bob ex:knows _:chris .
+ex:Ann ex:knows _:chris .
+_:chris ex:nickname "Chris" .
+
+# mixed — ex:homepage takes a blank node here and a plain object below, so it cannot
+# flatten: half its facts would come out at arity 3 and half at 2
+ex:Bob ex:homepage [ ex:url "http://bob.example" ; ex:title "Bob" ] .
+ex:Ann ex:homepage "http://ann.example" .
+
+# an OWL restriction is an axiom, not a tuple, and must stay one
+ex:Dog a owl:Class ;
+  rdfs:subClassOf [ a owl:Restriction ; owl:onProperty ex:hasPart ; owl:allValuesFrom ex:Limb ] .
+ex:Limb a owl:Class .
+ex:Rover a ex:Dog ; ex:hasPart ex:RoverLeg .
+ex:RoverLeg a ex:Limb .

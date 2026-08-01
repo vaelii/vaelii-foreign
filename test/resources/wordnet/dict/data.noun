@@ -1,0 +1,11 @@
+  1 Hand-authored WNDB records.  Not a slice of Princeton WordNet: a reader is a
+  2 capability, and its checked-in test data is invented.  Header lines start with
+  3 two spaces, which is the one thing never true of a record.
+00000001 03 n 01 entity 0 000 | that which is perceived  
+00000002 03 n 01 animal 0 001 @ 00000001 n 0000 | a living organism  
+00000003 05 n 02 dog 0 domestic_dog 0 003 @ 00000002 n 0000 %p 00000004 n 0000 ~ 00000007 n 0000 | a domesticated canine  
+00000004 05 n 01 tail 0 001 #p 00000003 n 0000 | the posterior part of an animal  
+00000005 18 n 01 Bach 0 001 @i 00000006 n 0000 | a composer of the baroque  
+00000006 18 n 01 composer 0 001 @ 00000002 n 0000 | a person who writes music  
+00000007 05 n 01 poodle 0 001 @ 00000003 n 0000 | a curly-haired dog  
+00000008 05 n 01 dog 0 001 @ 00000006 n 0000 | a contemptible person  
