@@ -16,10 +16,18 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
-## [Unreleased]
+## [0.2.0] — 2026-08-03
 
-First public release. Nothing has shipped yet, so everything below is the initial
-contents rather than a change from anything.
+No functional change. The version moves in lockstep with the engine because the
+two coordinates cross-reference — `project.clj` here depends on
+`com.vaelii/vaelii` and the engine's `:with-foreign` profile depends back — so a
+half-bumped pair leaves one of them resolving a version that does not exist. The
+engine's 0.2.0 is not a drop-in upgrade from its 0.1.0; this artifact is.
+
+## [0.1.0] — 2026-08-01
+
+First public release, on [Clojars](https://clojars.org/com.vaelii/vaelii-foreign).
+Everything below is the initial contents rather than a change from anything.
 
 ### Added
 
@@ -62,4 +70,5 @@ contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
-[Unreleased]: https://github.com/vaelii/vaelii-foreign/commits/main
+[0.2.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/vaelii/vaelii-foreign/releases/tag/v0.1.0
