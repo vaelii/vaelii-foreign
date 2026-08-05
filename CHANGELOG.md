@@ -16,6 +16,19 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.4.0] — 2026-08-05
+
+No functional change. The version moves in lockstep with the engine for the same
+reason 0.3.0 did, and the engine's 0.4.0 carries thirteen breaking changes and eight
+refusals, none of which reaches this artifact. Three of its calls touch a contract
+that moved, and each is on the accepting side of it: the `{:backend :disk :dir …
+:recover? false}` it opens a corpus with passes only keys the roster reads, `false`
+being inside the domain `:recover?` is now checked against; the `(forward-chain kb
+{})` that closes a load carries no key there is anything to refuse; and the sentences
+the readers hand `assert` are lists, which is the shape its new check asks for. The
+suite says as much against the engine being cut, rather than the pattern of the last
+two releases saying it.
+
 ## [0.3.0] — 2026-08-04
 
 No functional change. The version moves in lockstep with the engine for the same
@@ -78,6 +91,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.4.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/vaelii/vaelii-foreign/releases/tag/v0.1.0
