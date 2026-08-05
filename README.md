@@ -44,7 +44,7 @@ other.
 Add the dependency, and the engine finds the readers:
 
 ```clojure
-[com.vaelii/vaelii-foreign "0.2.0"]
+[com.vaelii/vaelii-foreign "0.3.0"]
 ```
 
 Nothing to require and nothing to call. `resources/vaelii/foreign.edn` declares

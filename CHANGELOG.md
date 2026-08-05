@@ -16,6 +16,14 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.3.0] — 2026-08-04
+
+No functional change. The version moves in lockstep with the engine for the same
+reason 0.2.0 did, and the engine's 0.3.0 carries eight breaking changes none of
+which reaches this artifact: its only contact with a changed contract is the
+`{:recover? false}` it opens a corpus with, and `false` is still what that option
+takes.
+
 ## [0.2.0] — 2026-08-03
 
 No functional change. The version moves in lockstep with the engine because the
@@ -70,5 +78,6 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.3.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/vaelii/vaelii-foreign/releases/tag/v0.1.0

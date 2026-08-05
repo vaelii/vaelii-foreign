@@ -23,7 +23,7 @@ Informational inventory, not legal advice.
 | Artifact | Version | License |
 |---|---|---|
 | `org.clojure/clojure` | 1.12.5 | EPL-1.0 |
-| `com.vaelii/vaelii` (core engine) | 0.2.0 | SSPL-1.0 |
+| `com.vaelii/vaelii` (core engine) | 0.3.0 | SSPL-1.0 |
 | `com.taoensso/trove` | 1.2.0 | EPL-1.0 |
 
 ## The CFASL reader is a derivative work of Cycorp's own
