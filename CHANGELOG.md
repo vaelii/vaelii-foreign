@@ -16,6 +16,43 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.5.0] — 2026-08-07
+
+No reader-facing change, and no corpus-format change. The version moves in lockstep
+with the engine, whose 0.5.0 carries nine breaking changes; one of them reaches this
+repo, and it lands on the scaffolding rather than on a reader. `open-kb` takes one
+`:space` number where it took `:record-space` and `:index-space`, and refuses either
+retired key **by name**, so `test-util`'s scratch KB was named in a spelling that no
+longer opens — it names the single number 11 now, still clear of the 14 and 15 the
+engine's own suite owns, so the two suites still run at once.
+
+The other seven do not reach a reader, and each for a reason rather than by luck. A
+reader opens a corpus with `{:backend :disk :dir … :recover? false}` and never named a
+space, so the migration above is the scaffolding's alone. Nothing here makes a request
+of a daemon, so the bearer token it now demands on a public bind is not this artifact's
+concern; nothing here starts the browser, so `VAELII_WEB_PORT` is not either. The engine
+no longer puts `org.slf4j/slf4j-nop` on a consumer's classpath, which reaches this repo
+as a dependency and would matter if the conversion ran a server — it does not, and the
+progress log goes through Trove, which is named here directly. `VAELII_HIER` renames a
+switch only the engine's own suite sets. The last two touch names no file here holds:
+`context-size` is `count-in-context`, and nothing in this repo calls either spelling —
+a conversion reports the count it kept as it went; and `different` descends into
+compound arguments now, where no reader asserts a comparison of any kind.
+
+The ninth is the one worth checking rather than asserting, since this repo's whole job
+is minting names: the engine now reads two more roles off a spelling, a **sense**
+(`abrasive-grit`) and a **lexeme** (`lex/fool's_gold`), and refuses a lexeme applied to
+arguments. `term/spell` mints neither and cannot. `words` splits a foreign name on the
+punctuation vaelii's symbols may not carry — a dash and a colon match no branch of its
+pattern — so every minted name comes back out of the four shapes `spell` names, and no
+converted corpus changes by a character. A reader that wanted to mint a sense would have
+to say so.
+
+One thing worth knowing for a converted corpus even though it changes nothing in this
+repo: the engine's `/kbs` now lists at most 200 discovered KBs per search-path
+directory. A directory holding more converted corpora than that hides the rest from the
+page, and naming them in the catalog file lists them regardless.
+
 ## [0.4.0] — 2026-08-05
 
 No functional change. The version moves in lockstep with the engine for the same
@@ -91,6 +128,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.5.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.1.0...v0.2.0

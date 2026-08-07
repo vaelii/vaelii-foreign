@@ -5,16 +5,12 @@
   suite's own helpers — this is the small part of that scaffolding the reader tests use,
   and it keeps the same meanings so a test reads the same in either repo.
 
-  **The space block.**  A test KB is named by a *pair* of space numbers rather than by a
-  path: the in-memory backend keys its process-global registry by number, and the disk
-  backend derives its directory from the pair.  The engine's suite owns the block topped
-  at 15, so this one takes the block topped at **11** — the two can run at once, disk
-  included, without either clearing the other's store out from under it.
-  `VAELII_TEST_SPACE` moves it.
-
-  A block is four numbers and `scratch-space` uses the top pair; the two below it are
-  reserved rather than used, which is what lets a run pick a block without checking what
-  else in it is taken.
+  **The space number.**  A test KB is named by a *space number* rather than by a path:
+  the in-memory backend keys its process-global registry by it, and the disk backend
+  derives its directory from it.  One number names both of a KB's stores, records and
+  index alike.  The engine's suite owns the block topped at 15, so this one takes **11**
+  — the two can run at once, disk included, without either clearing the other's store
+  out from under it.  `VAELII_TEST_SPACE` moves it.
 
   `VAELII_TEST_BACKEND` names the storage, spelled `<records>-<index>` (`memory`,
   `disk`, `memory-columnar`, …) exactly as it is for the engine, so the readers can be
@@ -28,17 +24,17 @@
             [vaelii.impl.kb :as kb]
             [vaelii.impl.protocols :as p]))
 
-(def ^:private block-top
+(def ^:private test-space
   (if-let [s (System/getenv "VAELII_TEST_SPACE")]
     (let [n (try (Long/parseLong (str/trim s))
                  (catch NumberFormatException _
                    (throw (ex-info (str "VAELII_TEST_SPACE must be a space number, got " (pr-str s))
                                    {:value s}))))]
-      ;; the block is [n-3, n], and 0/1 are the default KB's space numbers
+      ;; 0 and 1 are the default KB's space numbers, and the engine's suite owns 15
       (when-not (<= 5 n 15)
-        (throw (ex-info (str "VAELII_TEST_SPACE must be between 5 and 15 — it names the top of a "
-                             "four-space block, and the block must clear space numbers 0 and 1 "
-                             "(the default KB).  Got " n ".")
+        (throw (ex-info (str "VAELII_TEST_SPACE must be between 5 and 15 — it names the one "
+                             "space number this suite's KBs share, and it must clear space "
+                             "numbers 0 and 1 (the default KB).  Got " n ".")
                         {:value n})))
       n)
     11))
@@ -49,13 +45,13 @@
     {:backend :memory}))
 
 (defn- space-opts
-  "The KB opts for a space pair.  `:recover? false` — these KBs are built over spaces a
-  previous run may have left populated and are cleared right after construction, so the
+  "The KB opts for a space number.  `:recover? false` — these KBs are built over a space
+  a previous run may have left populated and are cleared right after construction, so the
   unrecovered-store warning would be noise on every build."
-  [rs is]
-  (merge {:record-space rs :index-space is :recover? false} storage))
+  [n]
+  (merge {:space n :recover? false} storage))
 
-(def scratch-space (space-opts block-top (- block-top 1)))
+(def scratch-space (space-opts test-space))
 
 (def raw-map-index?
   "True when the run's index keeps its entries as a directly `=`-comparable key→value map
@@ -65,13 +61,13 @@
   `:backend` name, so a sugar name cannot leave this saying the wrong thing."
   (contains? #{:memory :disk} (:index (kb/backend-axes storage))))
 
-(defn test-kb "A KB on this repo's scratch pair." [] (v/open-kb scratch-space))
+(defn test-kb "A KB on this repo's scratch space." [] (v/open-kb scratch-space))
 
 (defn clear-kb! [kb]
   (p/clear-records! (:records kb))
   (p/clear-index!   (:index kb)))
 
-(defn fresh "An empty, cleared KB on the scratch pair." [] (doto (test-kb) (clear-kb!)))
+(defn fresh "An empty, cleared KB on the scratch space." [] (doto (test-kb) (clear-kb!)))
 
 ;;; ── corpus scaffolding ────────────────────────────────────────────────
 ;;

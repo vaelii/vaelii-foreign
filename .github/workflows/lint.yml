@@ -61,11 +61,18 @@ jobs:
           lein: latest
 
       # kondo runs as a standalone binary (not via lein); install the official release.
+      # `--version` rather than the installer's default, which is *latest*: unpinned,
+      # a kondo release turns this workflow red with no change in this repository,
+      # and a linter that infers more each release will eventually flag something
+      # deliberate. Installing it is also this job's widest-reach step — it puts a
+      # binary on the PATH that then reads the tree. The engine pins the same version
+      # in its own lint.yml; `scripts/lint.sh` reads this line and says so when the
+      # local binary disagrees, so the two stay together or somebody is told.
       - name: Install clj-kondo
         run: |
           curl -sLO https://raw.githubusercontent.com/clj-kondo/clj-kondo/master/script/install-clj-kondo
           chmod +x install-clj-kondo
-          sudo ./install-clj-kondo --dir /usr/local/bin
+          sudo ./install-clj-kondo --dir /usr/local/bin --version 2026.08.04
 
       - name: Cache Maven deps
         uses: actions/cache@v5

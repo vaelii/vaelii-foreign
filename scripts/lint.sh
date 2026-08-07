@@ -3,7 +3,8 @@
 #
 # Trimmed port of vaelii core's scripts/lint.sh. This artifact has no doc-gen
 # system, so the doc / unused-publics gates don't apply: the checks here are
-# kondo + shellcheck + cljfmt + reflect (its unit suite runs via `lein test`,
+# versions + kondo + shellcheck + cljfmt + reflect (its unit suite runs via
+# `lein test`,
 # not this gate). Each check runs and its output + exit code are captured; a
 # uniform report prints: one ✓/✗ line per check (green/red glyph), a short
 # summary on success, the full captured detail only under a check that FAILED,
@@ -42,9 +43,9 @@ case "$(printf '%s' "${VAELII_COLOR:-}" | tr '[:upper:]' '[:lower:]')" in
         && ( -t 1 || ( -n "${TERM:-}" && "${TERM:-}" != dumb ) ) ]] && color=1 ;;
 esac
 if [[ $color -eq 1 ]]; then
-  GREEN=$'\e[32m'; RED=$'\e[1;31m'; DIM=$'\e[2m'; BOLD=$'\e[1m'; RST=$'\e[0m'
+  GREEN=$'\e[32m'; RED=$'\e[1;31m'; YELLOW=$'\e[33m'; DIM=$'\e[2m'; BOLD=$'\e[1m'; RST=$'\e[0m'
 else
-  GREEN=''; RED=''; DIM=''; BOLD=''; RST=''
+  GREEN=''; RED=''; YELLOW=''; DIM=''; BOLD=''; RST=''
 fi
 
 pass=0; fail=0; failed_labels=()
@@ -59,6 +60,7 @@ trap 'rm -f "$out" "$reflect_out" "$reflect_dur"; [[ -n "$reflect_pid" ]] && kil
 summary() {
   local label="$1" out="$2" s=""
   case "$label" in
+    versions) s="$(sed -n 's/^lint-versions: OK (\(.*\))/\1/p' "$out" | head -1)" ;;
     kondo)    s="$(grep -oE 'errors: [0-9]+, warnings: [0-9]+' "$out" | head -1)" ;;
     cljfmt)   s="formatted" ;;
     reflect)  s="no reflection / boxing" ;;
@@ -97,12 +99,43 @@ check() {
 
 printf '%slint%s\n' "$BOLD" "$RST"
 
+# kondo_version_note — say so when the local clj-kondo is not the one CI pins.
+#
+# The kondo check runs whatever binary is on PATH, and CI runs the version
+# `.github/workflows/lint.yml` installs.  Nothing made those the same, so a local
+# `lint: N/N clean` could sit against a red CI lint: a newer kondo infers more and
+# flags what an older one passes.
+#
+# A NOTE and never a failure, deliberately.  The pin moves whenever the workflow is
+# edited, and a package manager can lag it for weeks — so there are windows where no
+# `brew install` can satisfy a hard check, and refusing to run the linter then costs
+# more than the drift it would report.  Silent when the two agree, and silent when
+# either side cannot be read: an unreadable pin is a fact about this script's
+# parsing, not a finding about the tree.  The engine carries the same check; this
+# one parses an `install-clj-kondo --version` argument where that one reads a
+# `clj-kondo:` action input.
+kondo_version_note() {
+  local pin have
+  command -v clj-kondo >/dev/null 2>&1 || return 0
+  pin="$(sed -n 's/.*install-clj-kondo .*--version[= ]\([0-9][0-9.]*\).*/\1/p' \
+           .github/workflows/lint.yml 2>/dev/null | head -1)"
+  have="$(clj-kondo --version 2>/dev/null \
+            | grep -oE '[0-9]{4}\.[0-9]{2}\.[0-9]{2}' | head -1)"
+  [[ -n "$pin" && -n "$have" && "$pin" != "$have" ]] || return 0
+  printf '  %-15s %s! local %s, CI pins %s — CI can fail on what this passes%s\n' \
+         '' "$YELLOW" "$have" "$pin" "$RST"
+  printf '  %-15s %s  brew upgrade borkdude/brew/clj-kondo, or install-clj-kondo --version %s%s\n' \
+         '' "$DIM" "$pin" "$RST"
+}
+
 # Head start: reflect runs while the (non-lein) kondo + shellcheck checks stream below.
 ( s=$SECONDS; bash scripts/check-reflection.sh >"$reflect_out" 2>&1; rc=$?
   printf '%s %s\n' "$rc" "$((SECONDS - s))" >"$reflect_dur" ) &
 reflect_pid=$!
 
+check versions       -- bash scripts/lint-versions.sh
 check kondo          -- clj-kondo --lint src test
+kondo_version_note
 check shellcheck     -- shellcheck scripts/*.sh
 
 # cljfmt also shells out to lein; let the background reflect's lein finish first

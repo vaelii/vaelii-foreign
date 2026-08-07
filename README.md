@@ -41,11 +41,11 @@ other.
 
 ## Using it
 
-Add the dependency, and the engine finds the readers:
-
-```clojure
-[com.vaelii/vaelii-foreign "0.4.0"]
-```
+Add the dependency, and the engine finds the readers — Leiningen
+`[com.vaelii/vaelii-foreign "0.5.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.5.0"}` — from
+[Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
+the version it was cut with, so a project naming only this one gets both.
 
 Nothing to require and nothing to call. `resources/vaelii/foreign.edn` declares
 `kind -> reader var`; vaelii's seam (`vaelii.impl.foreign`) reads every copy of that
@@ -115,10 +115,10 @@ Re-run `lein install` after an engine change you want the readers tested against
 tests are integration tests against a real KB, and they reach into `vaelii.impl.*`, which
 the engine is free to change. Carrying that cost is what a plugin is for.
 
-`lein test` reserves the four space numbers 8–11 and uses the top pair, 11 and 10, which
-it clears — so the engine's own suite (which reserves 12–15) can run at the same time,
-disk included. `VAELII_TEST_SPACE` moves the block; `VAELII_TEST_BACKEND=disk` runs the
-readers against the durable store, which for a corpus load is the interesting half.
+`lein test` uses the space number 11 — one number names both of a KB's stores — and
+clears it, so the engine's own suite (which owns 14 and 15) can run at the same time,
+disk included. `VAELII_TEST_SPACE` moves it; `VAELII_TEST_BACKEND=disk` runs the readers
+against the durable store, which for a corpus load is the interesting half.
 
 Every fixture under `test/resources` is hand-authored — a reader is a capability, and its
 checked-in test data is invented — except `cyc-tiny`, which is a vendored Apache-2.0 KB
