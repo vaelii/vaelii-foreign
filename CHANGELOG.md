@@ -16,6 +16,19 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.5.1] — 2026-08-11
+
+No reader-facing change, no corpus-format change, and nothing here a caller can observe.
+The version moves in lockstep with the engine, whose 0.5.1 is a patch — and the lockstep
+is this release's whole reason rather than a convention: a released engine tree names
+`com.vaelii/vaelii-foreign` at its **own** version in the `+with-foreign` profile, so that
+version has to exist for the profile to resolve. Publishing it beside the engine rather
+than after it is what keeps `lein with-profile +with-foreign` working on the day the
+engine ships.
+
+What the range holds is the version bump itself and a test fixture renaming the canonical
+dog, which reaches no reader, no corpus and no shipped term.
+
 ## [0.5.0] — 2026-08-07
 
 No reader-facing change, and no corpus-format change. The version moves in lockstep
@@ -128,6 +141,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.5.1]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.2.0...v0.3.0

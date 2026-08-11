@@ -356,7 +356,7 @@
        ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
         "(ke-assert '(#$isa #$Rover #$Dog) #$BaseKB :default :forward)"
         "(ke-assert '(#$not (#$barksAt #$Rover #$Rover)) #$BaseKB :default :forward)"
-        "(ke-assert '(#$and (#$isa #$Fido #$Dog) (#$barksAt #$Fido #$Rover)) #$BaseKB :default :forward)"
+        "(ke-assert '(#$and (#$isa #$Muffet #$Dog) (#$barksAt #$Muffet #$Rover)) #$BaseKB :default :forward)"
         "(ke-assert '(#$or (#$not (#$isa ?X #$Dog)) (#$noisy ?X)) #$BaseKB :default :forward)"])
       (fn [dump ^File dir]
         (let [out (io/file dir "corpus")]
@@ -369,7 +369,7 @@
                        (pr-str (:refusals loaded))))
               (is (seq (v/sentexes-matching kb '(not (barksAt Rover Rover)) 'BaseKBContext))
                   "the negative unit clause is believed as a negative fact")
-              (is (seq (v/sentexes-matching kb '(barksAt Fido Rover) 'BaseKBContext))
+              (is (seq (v/sentexes-matching kb '(barksAt Muffet Rover) 'BaseKBContext))
                   "both halves of the conjunction landed")
               (is (seq (v/sentexes-matching kb '(noisy Rover) 'BaseKBContext))
                   "the Horn disjunction fired as the rule it is"))))))))
