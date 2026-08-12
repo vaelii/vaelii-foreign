@@ -16,6 +16,20 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.6.0] — 2026-08-12
+
+No reader-facing change, no corpus-format change, and nothing here a caller can observe.
+The version moves in lockstep with the engine, whose 0.6.0 is a **minor** carrying three
+Breaking entries — a status code, the ops a model may reach, and where the CLI writes its
+refusals — none of which reaches a reader here: this artifact translates formats and calls
+`assert`, and the three touch the daemon's wire, the LLM tool surface and the CLI. The
+lockstep is the release's whole reason rather than a convention, a released engine tree
+naming `com.vaelii/vaelii-foreign` at its own version in the `+with-foreign` profile.
+
+What the range holds is the version bump and the CI tiering — the conformance job auto-runs
+on the public repository and nowhere else, and every `uses:` is a SHA that Dependabot
+watches.
+
 ## [0.5.1] — 2026-08-11
 
 No reader-facing change, no corpus-format change, and nothing here a caller can observe.
@@ -141,6 +155,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.6.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.3.0...v0.4.0

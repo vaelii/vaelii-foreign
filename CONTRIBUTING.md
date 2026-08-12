@@ -53,6 +53,14 @@ Shared coding, commit, and review conventions follow the core engine's
 
 - **Pull requests target `develop`.** `main` carries releases and is pushed by
   the maintainer, so it is never a pull-request target.
+- **A release rewinds `develop`, and we rebase your branch onto it.** Each
+  release resets `develop` to the new `main`, which moves your pull request's
+  base; GitHub notifies nobody, so we replay your commits onto the new base,
+  force-push your branch and say so on the pull request. Resync afterwards with
+  `git fetch origin && git reset --hard origin/<your-branch>`, only if you have
+  nothing unpushed there. This needs **Allow edits by maintainers**, the
+  checkbox on your pull request: untick it and you get the commands to run
+  instead. The `develop` you branched from is kept as `develop-pre-vX.Y.Z`.
 - Conventional Commits subjects: `type(scope): subject`, the scope optional.
 - Define functions before use; reorder rather than `declare`.
 - Comments describe what the code does now, never what it used to do.

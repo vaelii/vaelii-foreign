@@ -12,6 +12,15 @@ name: lint
 # WHERE CORE COMES FROM: `vaelii/vaelii` with the job's own token, overridable
 # by the repo variable CORE_REPO plus a CORE_REPO_TOKEN secret when core is
 # private. test.yml carries the full reasoning; the two files must agree.
+#
+# EVERY `uses:` IN THIS REPO'S WORKFLOWS IS A COMMIT SHA, with the version in a
+# trailing comment — here and in test.yml, matching vaelii core. A tag is a
+# mutable ref that the action's owner (or anyone who takes that account) can
+# repoint, and a major tag like `v6` moves by design; both workflows here run
+# fork pull requests with actions unrestricted, so a tag is a supply-chain
+# promise made by somebody else's account. A SHA is the artifact itself. The
+# trailing comment is not decoration: Dependabot reads it, and its bump pull
+# requests carry the version the new SHA is.
 on:
   push:
     branches: [main, develop]
@@ -31,16 +40,25 @@ concurrency:
 
 jobs:
   lint:
+    # WHICH COPY OF THIS FILE RUNS IT: everything on the public repo, the minimal
+    # set on the private copies, and the third clause is what keeps a scheduled
+    # run off one that bills for it and learns nothing a push has not already
+    # said. test.yml's header states the rule, and every job in both files
+    # carries this same `if:`.
+    if: >-
+      github.repository_owner == 'vaelii'
+      || github.event_name == 'workflow_dispatch'
+      || (github.repository_owner == 'vaelii-admin' && github.event_name != 'schedule')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout vaelii-foreign
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           path: vaelii-foreign
 
       - name: Checkout vaelii core
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           repository: ${{ vars.CORE_REPO || 'vaelii/vaelii' }}
           path: vaelii
@@ -50,13 +68,13 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Leiningen
-        uses: DeLaGuardo/setup-clojure@13.6.1   # bump if this tag 404s
+        uses: DeLaGuardo/setup-clojure@4c7a6f613e5089821bb3bb2a33a3ee115578580d  # 13.6.1
         with:
           lein: latest
 
@@ -75,7 +93,7 @@ jobs:
           sudo ./install-clj-kondo --dir /usr/local/bin --version 2026.08.04
 
       - name: Cache Maven deps
-        uses: actions/cache@v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: ~/.m2
           key: m2-${{ hashFiles('vaelii/project.clj', 'vaelii-foreign/project.clj') }}

@@ -5,9 +5,19 @@
 # Nothing here is vendored. A conformance suite is somebody else's corpus under
 # somebody else's licence, it is large, and it moves; checking one into git
 # would make this repo a stale mirror of it. So the suites live in a gitignored
-# cache, the tests that need them skip when it is absent (see
-# `vaelii.foreign.suite`), and CI never fetches. What the repo owns is the
-# hand-authored fixtures under test/resources/ — those run offline, always.
+# cache and the tests that need them skip when it is absent (see
+# `vaelii.foreign.suite`). What the repo owns is the hand-authored fixtures
+# under test/resources/ — those run offline, always.
+#
+# ONE ITEM IS FETCHED BY CI, and it is the one that can be pinned. `rdf-tests`
+# carries a contract — every valid document in all four W3C suites reads, at
+# 100%, or an ontology somebody publishes will not open — and a contract that
+# runs only when somebody remembers it is a measurement, not a gate. The
+# `conformance` job in .github/workflows/test.yml fetches this item at
+# $rdf_tests_ref below and runs `lein test :suite`. The OBO items stay local:
+# they are PURLs to unversioned ontologies republished on the Foundry's
+# schedule, so a CI leg on them reports somebody else's release as our red
+# build.
 #
 # Idempotent by construction: an item whose target already exists is left
 # alone, so re-running costs nothing and a first run after checkout is the
@@ -40,7 +50,10 @@ for arg in "$@"; do
     --all)   want_all=1 ;;
     --list)  items=(--list) ;;
     -h|--help)
-      sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      # The header, to the first blank line — a line number would need moving
+      # every time the header does, and would silently truncate the usage block
+      # when somebody forgot.
+      sed -n '2,/^$/p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0 ;;
     -*) echo "unknown flag $arg" >&2; exit 2 ;;
     *)  items+=("$arg") ;;
@@ -82,15 +95,42 @@ list_items() {
 # curl and git only. No package manager, no language runtime: this has to work
 # on a fresh checkout before anything is built.
 
+# The revision `conformance_test`'s floors were measured against, and the one CI
+# fetches. Pinned rather than tracked, because a floor is a claim about this
+# reader: let the corpus move under it and a red build means the W3C added a
+# test, which is a fact about the week rather than about the code. Moving the
+# pin is an edit here plus a `lein test :suite` to re-measure, and the numbers
+# it prints belong in the commit that moves it.
+rdf_tests_ref=767554e135eb6665949d870e6fa7bbc813837293
+
 fetch_rdf_tests() {
-  # A blobless sparse clone of rdf/rdf11 alone. The whole repo is 41 MB and
-  # carries SPARQL and SHACL suites this repo has no reader for; the shallow
-  # sparse form is a third of that and is still a git checkout, so refreshing
-  # it later is a pull rather than a re-download.
+  # A blobless sparse checkout of rdf/rdf11 alone. The whole repo is 41 MB and
+  # carries SPARQL and SHACL suites this repo has no reader for; this form is
+  # 28 MB and is still a git checkout, so moving the pin later is a fetch rather
+  # than a re-download.
+  #
+  # `init` + `fetch <sha>` and not `clone --depth 1`, because a shallow clone can
+  # only land on a branch tip and the whole point of the pin is to land off it.
   local dst="$cache/rdf-tests"
-  git clone --depth 1 --filter=blob:none --sparse -q \
-    https://github.com/w3c/rdf-tests.git "$dst"
+  git init -q "$dst"
+  git -C "$dst" remote remove origin 2>/dev/null || true
+  git -C "$dst" remote add origin https://github.com/w3c/rdf-tests.git
+  git -C "$dst" fetch -q --depth 1 --filter=blob:none origin "$rdf_tests_ref"
   git -C "$dst" sparse-checkout set rdf/rdf11 >/dev/null
+  git -C "$dst" checkout -q FETCH_HEAD
+}
+
+check_rdf_tests_pin() {
+  # A cache sitting at some other revision is the quiet version of the failure the
+  # pin exists to stop — the floors pass or fail against a corpus nobody named, and
+  # a local run then disagrees with CI for a reason neither prints. Say so; don't
+  # refetch 28 MB somebody may have moved deliberately.
+  local at
+  at=$(git -C "$cache/rdf-tests" rev-parse HEAD 2>/dev/null || echo "unknown")
+  if [ "$at" != "$rdf_tests_ref" ]; then
+    echo "           ⚠ at ${at:0:12}, pinned at ${rdf_tests_ref:0:12} — the floors were"
+    echo "             measured at the pin.  Re-fetch: $0 --force rdf-tests"
+  fi
 }
 
 fetch_obo_registry() {
@@ -154,6 +194,7 @@ while IFS= read -r line; do
 
   if [ -e "$cache/$target" ]; then
     echo "  cached   $name"
+    [ "$name" = "rdf-tests" ] && check_rdf_tests_pin
     skipped=$((skipped + 1))
     continue
   fi

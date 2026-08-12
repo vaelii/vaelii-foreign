@@ -16,6 +16,20 @@ name: test
 # core is *private* sets two things and changes no file — the repo variable
 # CORE_REPO, naming that repo, and the secret CORE_REPO_TOKEN, a PAT with read
 # access to it.
+#
+# Every `uses:` below is a commit SHA with the version in a trailing comment;
+# lint.yml's header says why a tag is not good enough here.
+#
+# WHICH COPY OF THIS FILE RUNS WHAT. Three repositories carry this tree and they
+# do not get the same CI, because only one of them has free minutes: everything
+# on the public repo, the minimal set on staging, and nothing automatic on the
+# dev copies. Every job below carries the same `if:` saying so — public owner,
+# any event; a dispatch, anywhere, which is how a dev tree runs one on demand;
+# and staging on anything but a cron, since a private repo billing for a weekly
+# canary buys nothing a push has not already told us. It is written on the owner
+# rather than on a branch because the owner is what differs between the copies.
+# A job that is a deep run or a matrix would drop the second and third clauses
+# and be public-only; there is no such job here.
 on:
   push:
     branches: [main, develop]
@@ -35,16 +49,21 @@ concurrency:
 
 jobs:
   test:
+    # The tier rule; see the header.
+    if: >-
+      github.repository_owner == 'vaelii'
+      || github.event_name == 'workflow_dispatch'
+      || (github.repository_owner == 'vaelii-admin' && github.event_name != 'schedule')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout vaelii-foreign
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           path: vaelii-foreign
 
       - name: Checkout vaelii core
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           repository: ${{ vars.CORE_REPO || 'vaelii/vaelii' }}
           path: vaelii
@@ -54,18 +73,18 @@ jobs:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Leiningen
-        uses: DeLaGuardo/setup-clojure@13.6.1   # bump if this tag 404s
+        uses: DeLaGuardo/setup-clojure@4c7a6f613e5089821bb3bb2a33a3ee115578580d  # 13.6.1
         with:
           lein: latest
 
       - name: Cache Maven deps
-        uses: actions/cache@v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: ~/.m2
           key: m2-${{ hashFiles('vaelii/project.clj', 'vaelii-foreign/project.clj') }}
@@ -87,3 +106,106 @@ jobs:
       - name: Run the suite
         working-directory: vaelii-foreign
         run: lein test
+
+  # THE W3C SUITES, WHICH THE JOB ABOVE SKIPS. `conformance_test`'s tests are
+  # `^:suite` and gate on a cached corpus: absent, they print a note and pass, so
+  # the run above is green having made 3 of that namespace's 18 assertions and
+  # none of the four 100% floors. Those floors are the reader's contract — every
+  # valid document in all four suites reads, or an ontology somebody publishes
+  # will not open — and a contract that runs when somebody remembers it is a
+  # measurement rather than a gate.
+  #
+  # A separate job and not a step in the one above, for the reason the engine's
+  # `asp` job is separate: this is the only job in this repo that touches the
+  # network, and an upstream outage should read as "conformance failed" rather
+  # than as "the reader suite failed".
+  #
+  # THE W3C ITEM ONLY. `fetch-suites.sh` also caches three OBO ontologies and this
+  # deliberately leaves them alone: they are PURLs to unversioned ontologies
+  # republished on the Foundry's schedule, so a leg on them reports somebody
+  # else's release as our red build. `obo-converts-real-foundry-ontologies` stays
+  # a local run and prints its skip note in this job's log.
+  conformance:
+    name: conformance (W3C RDF suites)
+    # The tier rule, stated at the top of this file. This job is neither a deep
+    # run nor a matrix, so it is inside the minimal set and a push to staging
+    # runs it.
+    if: >-
+      github.repository_owner == 'vaelii'
+      || github.event_name == 'workflow_dispatch'
+      || (github.repository_owner == 'vaelii-admin' && github.event_name != 'schedule')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout vaelii-foreign
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          path: vaelii-foreign
+
+      - name: Checkout vaelii core
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: ${{ vars.CORE_REPO || 'vaelii/vaelii' }}
+          path: vaelii
+          token: ${{ secrets.CORE_REPO_TOKEN || github.token }}
+          # As above: don't leave the credential in vaelii/.git/config for the
+          # rest of the job.
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Leiningen
+        uses: DeLaGuardo/setup-clojure@4c7a6f613e5089821bb3bb2a33a3ee115578580d  # 13.6.1
+        with:
+          # Pinned as the engine pins it: 2.13.0's launcher self-installs an
+          # unpublished snapshot jar.
+          lein: 2.12.0
+
+      - name: Cache Maven deps
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.m2
+          key: m2-${{ hashFiles('vaelii/project.clj', 'vaelii-foreign/project.clj') }}
+          restore-keys: |
+            m2-
+
+      - name: Install vaelii core
+        working-directory: vaelii
+        run: lein install
+
+      # The revision is pinned inside the script, so this fetches the corpus the
+      # floors were measured against rather than whatever the W3C published this
+      # morning — a ratchet against a moving suite would report their new test as
+      # our regression.
+      - name: Fetch the W3C RDF suites
+        working-directory: vaelii-foreign
+        run: scripts/fetch-suites.sh rdf-tests
+
+      # THE STEP THIS JOB EXISTS FOR, and the engine's `asp` job is where the shape
+      # comes from: fetching proves nothing on its own. A half-fetched cache leaves
+      # `suite/cached` returning nil, every test prints its note and passes, and
+      # this job goes green having tested less than the job it was added to
+      # supplement. So ask what the tests ask — the manifest each of the four
+      # suites is read from — and fail here rather than pass there.
+      - name: Verify the suites really landed
+        working-directory: vaelii-foreign
+        run: |
+          root=.cache/rdf-tests/rdf/rdf11
+          missing=0
+          for d in rdf-turtle rdf-n-triples rdf-n-quads rdf-xml; do
+            if [ -f "$root/$d/manifest.ttl" ]; then
+              echo "  ok       $d"
+            else
+              echo "::error::$root/$d/manifest.ttl is absent — the suite would skip and this job would pass"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Run the suites
+        working-directory: vaelii-foreign
+        run: lein test :suite

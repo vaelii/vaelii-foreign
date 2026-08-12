@@ -12,7 +12,9 @@ deciding whether a translation is honest enough to build on, this is the argumen
 Nothing here ships an ontology. `scripts/fetch-suites.sh` caches the third-party test
 material — the W3C RDF syntax suites, the OBO Foundry registry, three small real
 ontologies — under a gitignored `.cache/`, once per checkout; the tests that use it skip
-when it is absent, so an ordinary `lein test` needs no network.
+when it is absent, so an ordinary `lein test` needs no network. CI fetches one of those
+items, the W3C suites, because they can be pinned to a revision and carry a contract; see
+[Four syntaxes](#four-syntaxes-and-how-the-reader-picks) below.
 
 `load` takes no format. Every converter here writes the same corpus, so reading one
 back is format-independent — see [The corpus](#the-corpus) below.
@@ -106,11 +108,17 @@ losing a billion-triple dump to one:
 | Turtle | 145/145 eval, 74/74 syntax | 73% |
 | N-Triples | 41/41 | 48% |
 | N-Quads | 53/53 | 44% |
-| RDF/XML | 126/126 eval | 95% |
+| RDF/XML | 126/126 eval | 97% |
 
 The right-hand column is the floor `conformance_test` holds the reader to, not the rate
 a run reports: a run prints what it actually reached beside each floor, and the floor is
 raised when a fix lands and never lowered to let a change pass.
+
+Both columns are checked by the `conformance` job in `.github/workflows/test.yml`, which
+fetches the suites at the revision pinned in `scripts/fetch-suites.sh` and fails when the
+corpus did not land rather than skipping quietly. The pin is what lets a ratchet mean
+anything: measured against a suite free to move, these numbers would be a claim about the
+week the run happened.
 
 `turtle/triples` takes `:strict? true` to turn recovery off, which is what the suites
 run with and what a hand-written ontology probably wants.
