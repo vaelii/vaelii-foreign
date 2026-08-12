@@ -10,7 +10,7 @@
       predicate    camelCase                  parentOf, argIsa
       individual   CapitalCamelCase           Rover, Einstein
       function     CapitalCamelCase           GroupFn
-      context      CapitalCamelCase + Context UniverseContext
+      context      Cx + CapitalCamelCase   CxUniverse
 
   So a translation cannot rename term-by-term as it goes: it has to know a term's
   **role** first, and every reader here earns that the same way — a classifying pass
@@ -27,7 +27,7 @@
     suffix that is free, in a **sorted** pass, so the same source always produces the
     same names whatever order it was read in — a corpus you can diff between runs.
 
-  * **A name becomes a file name.**  A context file is `<Context>.txt`, and a
+  * **A name becomes a file name.**  A context file is `Cx<C>.txt`, and a
     filesystem bounds a name at 255 bytes, while a computed Cyc microtheory or an
     ATOMIC event runs far longer.  `abbreviate` truncates and appends a hash of the
     whole, in letters rather than digits so `spell` cannot break the hash into a word
@@ -69,25 +69,27 @@
                     (if (re-matches #"[a-z][a-z0-9_]*" s) s (str "t_" s)))
       :predicate  (let [s (lowercase-head (str/join "" (map capitalize-head ws)))]
                     (if (re-matches #"[a-z][a-zA-Z0-9]*" s) s (str "p" (capitalize-head s))))
-      :context    (let [ws (if (and (> (count ws) 1) (= "Mt" (last ws))) (butlast ws) ws)
-                        s  (str (str/join "" (map capitalize-head ws)) "Context")]
-                    (if (re-matches #"[A-Z][A-Za-z0-9]*Context" s) s (str "Mt" s)))
-      ;; :individual and :function share a shape; an individual that came out ending in
-      ;; Context would read as a context, so it is pushed off that spelling.
+      :context    (let [ws   (if (and (> (count ws) 1) (= "Mt" (last ws))) (butlast ws) ws)
+                        body (str/join "" (map capitalize-head ws))
+                        s    (str "Cx" body)]
+                    (if (re-matches #"Cx[A-Z][A-Za-z0-9]*" s) s (str "CxMt" body)))
+      ;; :individual and :function share a shape; an individual that came out matching
+      ;; the Cx… context shape would read as a context, so it is pushed off that
+      ;; spelling.
       (let [s (str/join "" (map capitalize-head ws))
             s (if (re-matches #"[A-Z][A-Za-z0-9]*" s) s (str "X" s))]
-        (if (str/ends-with? s "Context") (str s "Term") s)))))
+        (if (re-matches #"Cx[A-Z][A-Za-z0-9]*" s) (str "X" s) s)))))
 
 ;;; ── collisions ────────────────────────────────────────────────────────
 
 (defn- suffixed
   "`base` with disambiguating suffix `n`, still spelled as `role` requires: a type keeps
-  its snake_case underscore, and a **context** takes the digit before its `Context`
-  ending rather than after it — `FooContext2` is not a context name."
+  its snake_case underscore before the digit, and every other role's shape — a **context**
+  included, since its `Cx` marker sits at the front rather than the end — survives a bare
+  append."
   [role ^String base n]
   (case role
-    :type    (str base "_" n)
-    :context (str (subs base 0 (- (count base) (count "Context"))) n "Context")
+    :type (str base "_" n)
     (str base n)))
 
 (defn disambiguate

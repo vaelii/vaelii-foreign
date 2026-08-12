@@ -8,7 +8,7 @@
 
   * **A role decides a term's spelling.**  vaelii's naming invariants encode a
     term's role in its symbol — a type is `snake_case`, a predicate `camelCase`, an
-    individual `CapitalCamelCase`, a context ends in `Context` — while Cyc writes
+    individual `CapitalCamelCase`, a context starts with `Cx` — while Cyc writes
     every constant `CapitalCamelCase` (predicates aside) and states the role as an
     assertion.  So the role must be **recovered first**: pass 1 reads the whole dump
     and classifies every constant, pass 2 translates with that classification in
@@ -21,7 +21,7 @@
 
   * **Cyc says with a predicate what vaelii says with a record field.**  `(isa P
     TransitiveBinaryPredicate)` is vaelii's `(transitive P)`; `(genls A B)` is
-    `(genl a b)`; `(genlMt A B)` is `(genlContext AContext BContext)`; `(arg1Isa P
+    `(genl a b)`; `(genlMt A B)` is `(genlCx CxA CxB)`; `(arg1Isa P
     C)` is `(argIsa p 1 c)`; a `:monotonic` assertion is a `{:strength :monotonic}`
     premise.  Everything without such a mapping stays an ordinary fact under its own
     (renamed) predicate — uninterpreted by the engine but stored, indexed and
@@ -509,7 +509,7 @@
       ;; — a rule concluding a sub-predicate answers a super-predicate goal — so
       ;; genlPreds and genls translate alike.
       "cyc/genlPreds"    (when binary? (list 'genl (term (arg 1)) (term (arg 2))))
-      "cyc/genlMt"       (when binary? (list 'genlContext (term (arg 1)) (term (arg 2))))
+      "cyc/genlMt"       (when binary? (list 'genlCx (term (arg 1)) (term (arg 2))))
       "cyc/disjointWith" (when binary? (list 'disjoint (term (arg 1)) (term (arg 2))))
       "cyc/comment"      (when (string? (arg 2)) (list 'comment (term (arg 1)) (arg 2)))
       "cyc/argIsa"       (when (integer? (arg 2))
@@ -741,7 +741,7 @@
                ;; Cyc's own root microtheory is this corpus's root: every other
                ;; microtheory is under it already, so the corpus hangs off vaelii's
                ;; vocabulary at exactly the point Cyc's own hierarchy has a top.
-               :root-context   'BaseKBContext
+               :root-context   'CxBaseKB
                :notice
                (str "Cyc(R) Knowledge Base (C) 1995-2008 Cycorp, Inc., Austin, TX, USA.\n"
                     "The OpenCyc Knowledge Base is licensed under the Apache License,\n"
@@ -762,7 +762,7 @@
                   ;; `corpus/term-definition?` for why that is an ordering requirement
                   ;; and not a preference.  They go in the root context because a term's
                   ;; identity is not a claim any one microtheory gets to hold.
-                  (emit! 'BaseKBContext :monotonic defs)
+                  (emit! 'CxBaseKB :monotonic defs)
                   (with-assertions
                     dump-path
                     (fn [as]
@@ -799,13 +799,13 @@
   natural-language and bookkeeping layers, which are the bulk of the corpus and none
   of its inference; `:core` keeps only Cyc's own upper vocabulary."
   {:full     {}
-   :ontology {:drop-contexts #{'EnglishContext 'BookkeepingContext 'GeneralLexiconContext}
+   :ontology {:drop-contexts #{'CxEnglish 'CxBookkeeping 'CxGeneralLexicon}
               :drop-predicates '#{prettyString prettyStringCanonical broaderTerm
                                   synonymousExternalConcept nameString
                                   termStrings termPhrases myCreator myCreationTime
                                   myCreationSecond myCreationPurpose}}
-   :core     {:keep-contexts #{'BaseKBContext 'UniversalVocabularyContext
-                               'CoreCycLContext 'CoreCycLImplementationContext}}})
+   :core     {:keep-contexts #{'CxBaseKB 'CxUniversalVocabulary
+                               'CxCoreCycL 'CxCoreCycLImplementation}}})
 
 (defn load-dir!
   "Load the corpus at `dir` into `kb` — `vaelii.foreign.corpus/load-dir!` with this

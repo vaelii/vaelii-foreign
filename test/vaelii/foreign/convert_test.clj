@@ -35,7 +35,7 @@
             "and an absent flag leaves the option unset rather than defaulting here"))))
 
   (testing "a value flag takes the next argument"
-    (is (= 'SomeContext (:context (parse ["--context" "SomeContext"]))))
+    (is (= 'CxSome (:context (parse ["--context" "CxSome"]))))
     (is (= #{"en" "fr"} (:languages (parse ["--languages" "en,fr"]))))
     (is (= 5 (:limit (parse ["--limit" "5"])))))
 
@@ -48,11 +48,11 @@
   ;; The one context name a person supplies rather than a reader mints.  It becomes a
   ;; file name inside the corpus, so it goes through `term/spell` like every minted one
   ;; and cannot bring a path along with it.
-  (is (= 'ZooContext (:context (parse ["--context" "Zoo"]))))
-  (is (= 'ZooContext (:context (parse ["--context" "zoo"]))))
-  (is (= 'ZooContext (:context (parse ["--context" "ZooContext"])))
+  (is (= 'CxZoo (:context (parse ["--context" "Zoo"]))))
+  (is (= 'CxZoo (:context (parse ["--context" "zoo"]))))
+  (is (= 'CxZoo (:context (parse ["--context" "CxZoo"])))
       "an already-spelled name keeps its spelling rather than gaining a second ending")
-  (is (= 'EscapeContext (:context (parse ["--context" "../../escape"])))
+  (is (= 'CxEscape (:context (parse ["--context" "../../escape"])))
       "and a name that would climb out of the corpus does not survive the spelling"))
 
 (deftest the-options-set-is-exactly-what-the-two-tables-name
@@ -158,7 +158,7 @@
                                "is_functional: true"]))
         nm  (obo/name-table (obo/classify ss {}))
         for* (fn [opts] (set (map second (:sentences (obo/translate (second ss) nm
-                                                                    'TestContext opts)))))]
+                                                                    'CxTest opts)))))]
     (is (= 'hasBoss (:term (nm "has_boss"))) "the fixture names what the test is about")
     (is (not-any? #(= 'functional (first %)) (for* {})))
     (is (contains? (for* {:functional? true}) '(functional hasBoss)))))

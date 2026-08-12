@@ -75,9 +75,9 @@
   interned as typed.  A context name becomes a file name inside the corpus, and this is
   the one context name a person supplies rather than a reader mints — so it goes through
   the same alnum-only spelling every minted one does.  An already-spelled name keeps its
-  spelling: `spell` appends the `Context` ending, so a trailing one is dropped first and
-  `Zoo`, `zoo` and `ZooContext` all name `ZooContext`."
-  {"--context"   [:context (fn [s] (symbol (term/spell :context (str/replace s #"Context\z" ""))))]
+  spelling: `spell` prepends the `Cx` marker, so a leading one is dropped first and
+  `Zoo`, `zoo` and `CxZoo` all name `CxZoo`."
+  {"--context"   [:context (fn [s] (symbol (term/spell :context (str/replace s #"\ACx" ""))))]
    "--languages" [:languages (fn [s] (set (str/split s #",")))]
    "--limit"     [:limit (fn [s] (Long/parseLong s))]})
 

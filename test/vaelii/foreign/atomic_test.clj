@@ -96,7 +96,7 @@
   ;; the context, not whether the row is read.
   (converted
    (fn [dir _]
-     (is (contains? (set (tu/corpus-file dir "AtomicEventContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxAtomicEvent.txt"))
                     '(newRelation PersonXPlaysTheGuitar SomethingUnrecognised))))))
 
 ;;; ── strength and contexts ─────────────────────────────────────────────
@@ -104,19 +104,19 @@
 (deftest nothing-in-this-corpus-is-monotonic
   (converted
    (fn [dir _]
-     (is (nil? (tu/corpus-file dir "AtomicSocialContext.monotonic.txt")))
-     (is (nil? (tu/corpus-file dir "AtomicPhysicalContext.monotonic.txt")))
-     (is (nil? (tu/corpus-file dir "AtomicContext.monotonic.txt"))
+     (is (nil? (tu/corpus-file dir "CxAtomicSocial.monotonic.txt")))
+     (is (nil? (tu/corpus-file dir "CxAtomicPhysical.monotonic.txt")))
+     (is (nil? (tu/corpus-file dir "CxAtomic.monotonic.txt"))
          "every tuple is what people said usually follows, and no other strength is honest"))))
 
 (deftest each-relation-family-is-its-own-context
   (converted
    (fn [dir _]
-     (is (contains? (set (tu/corpus-file dir "AtomicSocialContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxAtomicSocial.txt"))
                     '(oReact PersonXAbandonsAltogether Abandoned)))
-     (is (contains? (set (tu/corpus-file dir "AtomicPhysicalContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxAtomicPhysical.txt"))
                     '(madeUpOf BaseballBat Wood)))
-     (is (contains? (set (tu/corpus-file dir "AtomicEventContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxAtomicEvent.txt"))
                     '(isAfter PersonXAbandonsAltogether PersonXGetsTiredOfIt))))))
 
 ;;; ── the corpus loads ──────────────────────────────────────────────────
@@ -130,8 +130,8 @@
          (is (pos? (:asserted loaded)))
          (is (zero? (:refused loaded))
              (str "nothing here contradicts anything: " (pr-str (:refusals loaded)))))
-       (is (v/ask? kb '(xIntent PersonXAbandonsAltogether ToBeSelfish) 'AtomicSocialContext))
-       (is (seq (v/sentexes-matching kb '(madeUpOf BaseballBat ?x) 'AtomicPhysicalContext)))))))
+       (is (v/ask? kb '(xIntent PersonXAbandonsAltogether ToBeSelfish) 'CxAtomicSocial))
+       (is (seq (v/sentexes-matching kb '(madeUpOf BaseballBat ?x) 'CxAtomicPhysical)))))))
 
 (deftest a-family-profile-loads-one-half
   (converted
@@ -139,7 +139,7 @@
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
        (atomic/load-dir! kb (str dir) {:profile :physical :chain? false})
-       (is (v/ask? kb '(madeUpOf BaseballBat Wood) 'AtomicPhysicalContext))
+       (is (v/ask? kb '(madeUpOf BaseballBat Wood) 'CxAtomicPhysical))
        (is (empty? (v/sentexes-matching kb '(xIntent PersonXAbandonsAltogether ToBeSelfish)
-                                        'AtomicSocialContext))
+                                        'CxAtomicSocial))
            "the social half and the physical half answer different questions")))))

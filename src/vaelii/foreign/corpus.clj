@@ -9,9 +9,9 @@
       names.edn                    foreign term -> vaelii term, with its role
       report.edn                   what converted, what dropped, and why
       NOTICE                       whose knowledge this is, and on what terms
-      kb/Topology.txt              the genlContext wiring of every context
-      kb/<C>Context.txt            that context's `:default`-strength sentences
-      kb/<C>Context.monotonic.txt  its `:monotonic` ones
+      kb/Topology.txt          the genlCx wiring of every context
+      kb/Cx<C>.txt             that context's `:default`-strength sentences
+      kb/Cx<C>.monotonic.txt   its `:monotonic` ones
 
   **The `NOTICE` is not decoration.**  A translated ontology is a *reformulation* of
   somebody else's knowledge, and every source this repo reads attaches attribution terms
@@ -191,7 +191,7 @@
 
   `spec` is `{:format :source :options :names :root-context :notice}`.
   The root context is where this corpus hangs off vaelii's own vocabulary: it is wired
-  under `CoreContext`, and every context the source never placed under another is wired
+  under `CxCore`, and every context the source never placed under another is wired
   under it, so no context arrives orphaned however incomplete the source's own hierarchy
   was.  `:notice` is the reader's attribution text
   for what it just translated — see the namespace docstring for why every corpus gets
@@ -202,7 +202,7 @@
   [out-dir {:keys [format source options names root-context notice]} emit-fn]
   (let [^File dir (io/file out-dir)
         ^File kb  (io/file dir "kb")
-        root      (or root-context 'ImportedContext)]
+        root      (or root-context 'CxImported)]
     (.mkdirs kb)
     (run! #(.delete ^File %) (.listFiles kb))
     (let [[writer close-all] (pooled-writers kb 96)
@@ -231,7 +231,7 @@
           ;; sentences loaded after its children's would be a context arriving after the
           ;; checks that read it.
           subs      (set (map first stated))
-          added     (cons [root 'CoreContext]
+          added     (cons [root 'CxCore]
                           (for [c contexts :when (and (not (subs c)) (not= root c))] [c root]))
           order     (general-first (concat stated added) contexts)]
       ;; Written supercontext-first, so the file reads down the hierarchy the way the
@@ -239,7 +239,7 @@
       (with-open [^Writer w (io/writer (io/file kb "Topology.txt"))]
         (let [rank  (into {} (map-indexed (fn [i c] [c i])) order)
               depth (fn [[_ sub _]] [(rank sub Long/MAX_VALUE) (str sub)])]
-          (doseq [s (concat (map (fn [[sub super]] (list 'genlContext sub super)) added)
+          (doseq [s (concat (map (fn [[sub super]] (list 'genlCx sub super)) added)
                             (sort-by depth @topology))]
             (.write w (sentence-line s))
             (.write w "\n"))))
@@ -294,7 +294,7 @@
   `argIsa` when a fact is checked, a `resultIsa` when a NAT is reified.  A declaration
   that arrives after the content it governs does not apply to it retroactively, so its
   layer is not a cost decision."
-  '#{genl genlContext disjoint disjointMetatype argIsa argGenl
+  '#{genl genlCx disjoint disjointMetatype argIsa argGenl
      transitive symmetric reflexive asymmetric functional inverse
      decontextualizedPredicate forcedDecontextualizedPredicate
      reifiableFunction unreifiableFunction resultIsa resultGenl})
@@ -328,10 +328,10 @@
   (and (seq? sentence) (contains? term-functors (first sentence))))
 
 (defn hierarchy-edge?
-  "A `genl` / `genlContext` edge — the schema sentences everything else reads through the
+  "A `genl` / `genlCx` edge — the schema sentences everything else reads through the
   cached closure, so they are their own layer, loaded first."
   [sentence]
-  (and (seq? sentence) (contains? '#{genl genlContext} (first sentence))))
+  (and (seq? sentence) (contains? '#{genl genlCx} (first sentence))))
 
 (defn type-membership?
   "A positive unary application — `(dog Rover)`, `(binaryPredicate ownerOf)` — which is
@@ -478,7 +478,7 @@
       (fn []
         (binding [v/*bulk-load?* (boolean (:bulk? opts))]
           (v/with-deferred-settle kb
-            (run! #(assert1! % 'UniverseContext {:chain? chain?})
+            (run! #(assert1! % 'CxUniverse {:chain? chain?})
                   (read-file-sentences (io/file kb-dir "Topology.txt")))
             (trove/log! {:level :info :id ::topology
                          :msg (str "topology: " @asserted " context edges")})

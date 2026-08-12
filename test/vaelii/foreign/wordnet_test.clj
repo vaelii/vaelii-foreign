@@ -110,12 +110,12 @@
 (deftest each-part-of-speech-is-its-own-context
   (converted
    (fn [dir _]
-     (is (contains? (set (tu/corpus-file dir "WordNetNounContext.monotonic.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxWordNetNoun.monotonic.txt"))
                     '(genl dog_n animal_n)))
-     (is (contains? (set (tu/corpus-file dir "WordNetVerbContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxWordNetVerb.txt"))
                     '(wordForm snore_v "snore")))
      (is (contains? (set (tu/corpus-file dir "Topology.txt"))
-                    '(genlContext WordNetNounContext WordNetContext))))))
+                    '(genlCx CxWordNetNoun CxWordNet))))))
 
 ;;; ── the corpus loads ──────────────────────────────────────────────────
 
@@ -129,8 +129,8 @@
          (is (zero? (:refused loaded))
              (str "nothing here contradicts anything: " (pr-str (:refusals loaded)))))
        (v/forward-chain kb {})
-       (is (v/ask? kb '(composer_n Bach) 'WordNetNounContext))
-       (is (v/ask? kb '(animal_n Bach) 'WordNetNounContext)
+       (is (v/ask? kb '(composer_n Bach) 'CxWordNetNoun))
+       (is (v/ask? kb '(animal_n Bach) 'CxWordNetNoun)
            "Bach is an animal through composer, which is what the hierarchy is for")))))
 
 (deftest the-nouns-profile-keeps-one-part-of-speech
@@ -139,5 +139,5 @@
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
        (wn/load-dir! kb (str dir) {:profile :nouns :chain? false})
-       (is (v/ask? kb '(genl dog_n animal_n) 'WordNetNounContext))
-       (is (empty? (v/sentexes-matching kb '(wordForm snore_v "snore") 'WordNetVerbContext)))))))
+       (is (v/ask? kb '(genl dog_n animal_n) 'CxWordNetNoun))
+       (is (empty? (v/sentexes-matching kb '(wordForm snore_v "snore") 'CxWordNetVerb)))))))

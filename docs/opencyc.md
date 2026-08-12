@@ -172,7 +172,7 @@ keeps the kinds apart:
 ### Roles first
 
 vaelii reads a term's role off its symbol — a type is `snake_case`, a predicate
-`camelCase`, an individual `CapitalCamelCase`, a context ends in `Context` — while
+`camelCase`, an individual `CapitalCamelCase`, a context starts with `Cx` — while
 Cyc writes nearly everything `CapitalCamelCase` and says the role in an assertion.
 So **pass 1 classifies every constant** and pass 2 translates with that in hand.
 
@@ -207,8 +207,8 @@ punctuation Cyc allows that vaelii's symbols do not:
 | `USState` | type | `us_state` (an acronym is one word) |
 | `prettyString-Canonical` | predicate | `prettyStringCanonical` |
 | `Ohio-State` | individual | `OhioState` |
-| `EnglishMt` | context | `EnglishContext` |
-| `BaseKB` | context | `BaseKBContext` |
+| `EnglishMt` | context | `CxEnglish` |
+| `BaseKB` | context | `CxBaseKB` |
 
 Names are assigned in sorted order and collisions take a numeric suffix, so the table
 is a function of the dump and not of the order it was read. The whole mapping is
@@ -257,7 +257,7 @@ tying it to the term the same collection is called elsewhere.
 | `(isa Rover Dog)` | `(dog Rover)` | a type **is** the unary predicate |
 | `(genls Dog Mammal)` | `(genl dog mammal)` | |
 | `(genlPreds P Q)` | `(genl p q)` | vaelii's predicate hierarchy is the same closure |
-| `(genlMt A B)` | `(genlContext AContext BContext)` | written to `Topology.txt` |
+| `(genlMt A B)` | `(genlCx CxA CxB)` | written to `Topology.txt` |
 | `(disjointWith A B)` | `(disjoint a b)` | |
 | `(arg1Isa P C)`, `(argIsa P 2 C)` | `(argIsa p 1 c)`, `(argIsa p 2 c)` | the `argN*` family folds into one positional form |
 | `(comment X "…")` | `(comment x "…")` | |
@@ -355,7 +355,7 @@ reasons, so they land in `:unread` (643 → 646) where they belong.
 
 The layout is every reader's ([ontologies.md](ontologies.md#the-corpus)): `meta.edn`,
 `names.edn` — here a Cyc constant to a vaelii term, with its role — `report.edn`, the
-`genlContext` wiring of every microtheory in `kb/Topology.txt`, and one file per context
+`genlCx` wiring of every microtheory in `kb/Topology.txt`, and one file per context
 beside it, `.monotonic` or not.
 
 The files hold plain vaelii sentences, one s-expression per line — the same format
@@ -384,7 +384,7 @@ lein convert convert cyc <opencyc>/server/cyc/run/units/5022/ corpora/cyc
 
 `Topology.txt` loads first — a context's supercontexts must exist before its own
 sentences are checked against them — and Cyc's root microtheory is wired under
-vaelii's `CoreContext`, so the whole imported spindle sees the engine vocabulary.
+vaelii's `CxCore`, so the whole imported spindle sees the engine vocabulary.
 Then each context file in the meta's topological order.
 
 `:profile` names a subset: `:full` loads everything, `:ontology` drops the
@@ -585,7 +585,7 @@ directly ([contexts.md](https://github.com/vaelii/vaelii/blob/main/docs/contexts
 that each sees the other and not that they are one place.
 
 **A refusal that costs nothing.** The corpus carries 864 reflexive edges — 517
-`(genlContext X X)`, 328 `(genl X X)` (Cyc's `genls` and `genlPreds` both land there), 17
+`(genlCx X X)`, 328 `(genl X X)` (Cyc's `genls` and `genlPreds` both land there), 17
 `(rewriteOf X X)`, 2 `(disjoint X X)`. Most of them are a NART on both sides, which is
 why the figure is larger than the constant-to-constant count. The first three are refused
 and lose nothing: those closures are reflexive by construction, so the edge was already
@@ -656,7 +656,7 @@ So the disjointness and the full subsumption path never coexist in any one Mt's 
 and Cyc never has the clash to resolve. The global closure had both, everywhere:
 **that one assertion produced 7,400 clashes, about half of the total**, and 78 disjoint
 pairs accounted for all of them. Dropping the imported external ontologies
-(`GeneOntologyContentContext`, the AURA biology mapping) changed the number by
+(`CxGeneOntologyContent`, the AURA biology mapping) changed the number by
 **zero** — the subsumption paths run through `#$UniversalVocabularyMt`, which is
 Cyc's own. So it was not an artefact of alignment layers, and no profile removed it.
 
@@ -707,7 +707,7 @@ The other named share of what is left is neither engine nor corpus being wrong, 
 two using one word for concepts of different width. Cyc's `#$arity` applies to any
 `#$FixedArityRelation`, functions included; vaelii's `arity` is about a predicate — it is
 read by `checks/declared-arity` off a *sentence functor*, and a function never heads a
-sentence — and the engine's own `resources/kb/CoreContext.txt` says so with
+sentence — and the engine's own `resources/kb/CxCore.txt` says so with
 `(argIsa arity 1 predicate)`.
 So 2,693 `(arity SomeFn n)` assertions are refused by **vaelii's own** constraint rather
 than by anything Cyc said. `quotedIsa` is a smaller instance of the same shape.

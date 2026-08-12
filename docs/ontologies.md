@@ -39,13 +39,13 @@ Every reader writes the same thing — a directory of plain vaelii sentence file
 s-expression per line, partitioned by context:
 
 ```
-meta.edn                     format, source, counts, context load order
-names.edn                    foreign term -> vaelii term, with its role
-report.edn                   what converted, what dropped, and why
-NOTICE                       whose knowledge this is, and on what terms
-kb/Topology.txt              the genlContext wiring of every context
-kb/<C>Context.txt            that context's :default-strength sentences
-kb/<C>Context.monotonic.txt  its :monotonic ones
+meta.edn                 format, source, counts, context load order
+names.edn                foreign term -> vaelii term, with its role
+report.edn               what converted, what dropped, and why
+NOTICE                   whose knowledge this is, and on what terms
+kb/Topology.txt          the genlCx wiring of every context
+kb/Cx<C>.txt             that context's :default-strength sentences
+kb/Cx<C>.monotonic.txt   its :monotonic ones
 ```
 
 **One format, five converters** is a deliberate constraint rather than tidiness.
@@ -144,7 +144,7 @@ description logic and vaelii is a Horn rule engine.** The translation is a
 | `C ⊑ ∃P.{v}` (`owl:hasValue`) | `(implies (c ?x) (p ?x V))` |
 | `C ≡ ∃P.D` | `(implies (and (p ?x ?y) (d ?y)) (c ?x))` |
 | `C ≡ D1 ⊓ D2` | both `genl` edges **and** the sufficient-condition rule |
-| `O owl:imports O2` | `(genlContext OContext O2Context)` |
+| `O owl:imports O2` | `(genlCx CxO CxO2)` |
 | anything else | `(p S O)`, a plain fact |
 
 ### What is dropped, and why that is the interesting half
@@ -246,7 +246,7 @@ numeric suffix in a sorted pass, so the same graph produces the same names every
 and two conversions can be diffed.
 
 A **named graph** is a context — that is what N-Quads' fourth term is for — and so is
-an `owl:Ontology`. `owl:imports` becomes the `genlContext` edge it always was, which
+an `owl:Ontology`. `owl:imports` becomes the `genlCx` edge it always was, which
 makes an ontology's import closure its context hierarchy.
 
 A triple in no named graph lands in the file's own context: the `owl:Ontology` the file
@@ -254,8 +254,8 @@ declares, when it declares exactly one, and otherwise a context named from the f
 name. `--context <Name>` names that fallback instead, which is what a dump that is one
 fragment of something larger wants — its triples land in the context they belong to
 rather than in one named after whoever split the file. The name is spelled the way
-every context name in a corpus is, so `Zoo`, `zoo` and `ZooContext` all name
-`ZooContext`.
+every context name in a corpus is, so `Zoo`, `zoo` and `CxZoo` all name
+`CxZoo`.
 
 `--languages en,fr` filters language-tagged literals; the default is `en` plus every
 untagged literal. On a multilingual dump this is not a nicety: fifty translations of
@@ -404,7 +404,7 @@ having several senses *is*. Collisions take a numeric suffix in offset order, so
 would say are not read. `(wnOffset dog_n "n02084071")` is written for every synset and
 is the identifier to join on.
 
-Each part of speech is its own context under `WordNetContext`, so `--profile nouns`
+Each part of speech is its own context under `CxWordNet`, so `--profile nouns`
 loads the noun taxonomy alone.
 
 ```sh
@@ -421,8 +421,8 @@ home for it* — collected by asking people what usually follows. Nothing in it 
 definition, so nothing in it is written `:monotonic`.
 
 The 23 relations fall into three families, and the families are the contexts:
-`AtomicSocialContext` (what a person intends, needs, feels, wants), `AtomicEventContext`
-(how events sit next to each other), `AtomicPhysicalContext` (what a thing is for,
+`CxAtomicSocial` (what a person intends, needs, feels, wants), `CxAtomicEvent`
+(how events sit next to each other), `CxAtomicPhysical` (what a thing is for,
 where it is, what it is made of). A relation outside the table is still imported, into
 the event context, so a release that adds one arrives rather than vanishing.
 

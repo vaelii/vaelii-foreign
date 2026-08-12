@@ -117,12 +117,12 @@
 (deftest a-namespace-is-a-context
   (converted
    (fn [dir _]
-     (is (contains? (set (tu/corpus-file dir "CellularComponentContext.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxCellularComponent.txt"))
                     '(label membrane "membrane")))
-     (is (contains? (set (tu/corpus-file dir "BiologicalProcessContext.monotonic.txt"))
+     (is (contains? (set (tu/corpus-file dir "CxBiologicalProcess.monotonic.txt"))
                     '(genl cell_division cellular_process)))
      (testing "and a stanza with no namespace lands in the ontology's own context"
-       (is (contains? (set (tu/corpus-file dir "TinyContext.monotonic.txt"))
+       (is (contains? (set (tu/corpus-file dir "CxTiny.monotonic.txt"))
                       '(transitive partOf)))))))
 
 ;;; ── the corpus loads ──────────────────────────────────────────────────
@@ -137,9 +137,9 @@
          (is (zero? (:refused loaded))
              (str "nothing here contradicts anything: " (pr-str (:refusals loaded)))))
        (v/forward-chain kb {})
-       (is (v/ask? kb '(genl mitotic_cell_cycle cellular_process) 'BiologicalProcessContext))
-       (is (v/ask? kb '(cell_division TheObservedDivision) 'TinyContext))
-       (is (v/ask? kb '(cellular_process TheObservedDivision) 'TinyContext)
+       (is (v/ask? kb '(genl mitotic_cell_cycle cellular_process) 'CxBiologicalProcess))
+       (is (v/ask? kb '(cell_division TheObservedDivision) 'CxTiny))
+       (is (v/ask? kb '(cellular_process TheObservedDivision) 'CxTiny)
            "and the membership rises through the hierarchy")))))
 
 (deftest the-taxonomy-profile-drops-the-lexical-layer
@@ -148,7 +148,7 @@
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
        (obo/load-dir! kb (str dir) {:profile :taxonomy :chain? false})
-       (is (v/ask? kb '(genl cell_division cellular_process) 'BiologicalProcessContext))
+       (is (v/ask? kb '(genl cell_division cellular_process) 'CxBiologicalProcess))
        (is (empty? (v/sentexes-matching kb '(label cell_division "cell division")
-                                        'BiologicalProcessContext))
+                                        'CxBiologicalProcess))
            "the labels are what :taxonomy is for dropping")))))

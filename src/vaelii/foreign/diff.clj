@@ -49,7 +49,7 @@
 
 (defn- context-of
   "The context whose sentences file `f` holds.  A context writes up to two files —
-  `<Context>.txt` and `<Context>.monotonic.txt` — so the files are not the contexts."
+  `Cx<C>.txt` and `Cx<C>.monotonic.txt` — so the files are not the contexts."
   [^File f]
   (-> (.getName f) (str/replace #"\.txt\z" "") (str/replace #"\.monotonic\z" "")))
 

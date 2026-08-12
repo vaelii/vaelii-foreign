@@ -137,13 +137,13 @@
   (is (= "us_state" (term/spell :type "USState")) "an acronym is one word")
   (is (= "prettyStringCanonical" (term/spell :predicate "prettyString-Canonical")))
   (is (= "OhioState" (term/spell :individual "Ohio-State")))
-  (is (= "EnglishContext" (term/spell :context "EnglishMt")) "the Mt suffix becomes Context")
-  (is (= "BaseKBContext" (term/spell :context "BaseKB")))
+  (is (= "CxEnglish" (term/spell :context "EnglishMt")) "the Mt word drops and Cx takes its place")
+  (is (= "CxBaseKB" (term/spell :context "BaseKB")))
 
   (testing "a name that would break its invariant is prefixed, not mangled"
     (is (= "t_2000_census" (term/spell :type "2000Census")))
-    (is (str/ends-with? (term/spell :individual "SomeContext") "ContextTerm")
-        "an individual must not read as a context"))
+    (is (nm/individual? (symbol (term/spell :individual "CxSome")))
+        "an individual named like a context must not spell into one"))
 
   (testing "distinct Cyc names never collide after spelling"
     (let [table (cyc/name-table '{cyc/Ohio-State :individual cyc/OhioState :individual} #{} #{})]
@@ -186,7 +186,7 @@
 
     (testing "the context topology is separated from any one context"
       (is (= :topology (:context (one 'cyc/genlMt))))
-      (is (= '#{(genlContext MammalBiologyContext BaseKBContext)} (of 'cyc/genlMt))))
+      (is (= '#{(genlCx CxMammalBiology CxBaseKB)} (of 'cyc/genlMt))))
 
     (testing "a rule's body is rewritten with the same mapping as a fact"
       (is (= '#{(set/forwardRule (set/defaultRule (implies (dog ?ANIMAL) (mammal ?ANIMAL))))}
@@ -241,7 +241,7 @@
     (testing "while the well-formed two-argument shape is unchanged"
       (is (= '[(genl a b)]
              (vec (:sentences (one "(ke-assert '(#$genls #$A #$B) #$BaseKB :monotonic :forward)")))))
-      (is (= '[(genlContext MContext BaseKBContext)]
+      (is (= '[(genlCx CxM CxBaseKB)]
              (vec (:sentences (one "(ke-assert '(#$genlMt #$M #$BaseKB) #$BaseKB :monotonic :forward)"))))))))
 
 (deftest drops-what-has-no-vaelii-reading
@@ -367,11 +367,11 @@
               (is (zero? (:refused loaded))
                   (str "every clause shape the translation emits must assert: "
                        (pr-str (:refusals loaded))))
-              (is (seq (v/sentexes-matching kb '(not (barksAt Rover Rover)) 'BaseKBContext))
+              (is (seq (v/sentexes-matching kb '(not (barksAt Rover Rover)) 'CxBaseKB))
                   "the negative unit clause is believed as a negative fact")
-              (is (seq (v/sentexes-matching kb '(barksAt Muffet Rover) 'BaseKBContext))
+              (is (seq (v/sentexes-matching kb '(barksAt Muffet Rover) 'CxBaseKB))
                   "both halves of the conjunction landed")
-              (is (seq (v/sentexes-matching kb '(noisy Rover) 'BaseKBContext))
+              (is (seq (v/sentexes-matching kb '(noisy Rover) 'CxBaseKB))
                   "the Horn disjunction fired as the rule it is"))))))))
 
 (deftest mints-a-context-for-a-computed-microtheory
@@ -382,7 +382,7 @@
                                    (:nat-context evidence) (:nat-type evidence))
         r          (cyc/translate (first assertions) names {})]
     (is (contains? (:nat-context evidence) '(cyc/MtOfBeliefSystemFn cyc/Wicca)))
-    (is (= 'MtOfBeliefSystemFnWiccaContext (:context r))
+    (is (= 'CxMtOfBeliefSystemFnWicca (:context r))
         "vaelii names a context with a symbol, so a computed one is reified")
     (is (= '[(genl magic sacred_practice)] (:sentences r))))
 
@@ -394,7 +394,7 @@
           names      (cyc/name-table (cyc/roles (dissoc evidence :nat-context :nat-type))
                                      (:nat-context evidence) (:nat-type evidence))
           r          (cyc/translate (first assertions) names {})]
-      (is (= '[(genlContext MtOfBeliefSystemFnWiccaContext BaseKBContext)] (:sentences r))
+      (is (= '[(genlCx CxMtOfBeliefSystemFnWicca CxBaseKB)] (:sentences r))
           "a computed microtheory on either side of genlMt is the same context as in the
            microtheory slot; renaming it part-wise would wire up a context nothing asserts into"))))
 
@@ -404,12 +404,12 @@
           terms (map :term (vals table))]
       (is (= 2 (count (set terms))) "the collision is resolved")
       (is (every? nm/context? terms)
-          "a suffix appended after Context would stop the name being a context")))
+          "a collision-resolving suffix lands after the Cx marker, not inside it")))
 
   (testing "a date-sliced microtheory is told apart by its numbers"
     (let [table (cyc/name-table {} '#{(cyc/MtSpace cyc/M (cyc/YearFn 1980))
                                       (cyc/MtSpace cyc/M (cyc/YearFn 1981))} #{})]
-      (is (= '#{MtSpaceMYearFn1980Context MtSpaceMYearFn1981Context}
+      (is (= '#{CxMtSpaceMYearFn1980 CxMtSpaceMYearFn1981}
              (set (map :term (vals table))))
           "dropping the numbers would collapse thousands of Cyc's contexts onto one name"))))
 
@@ -428,20 +428,20 @@
               (:drops report))))
 
      (testing "one file per context, and the strengths kept apart"
-       (is (contains? (sentences-in dir "MammalBiologyContext.txt") '(dog Rover))
+       (is (contains? (sentences-in dir "CxMammalBiology.txt") '(dog Rover))
            "a :default assertion")
-       (is (contains? (sentences-in dir "MammalBiologyContext.monotonic.txt") '(genl dog mammal))
+       (is (contains? (sentences-in dir "CxMammalBiology.monotonic.txt") '(genl dog mammal))
            "a :monotonic one, so the loader can restore Cyc's own strength"))
 
      (testing "the topology names every context and roots them under the vocabulary"
        (let [topology (sentences-in dir "Topology.txt")]
-         (is (contains? topology '(genlContext BaseKBContext CoreContext)))
-         (is (contains? topology '(genlContext MammalBiologyContext BaseKBContext)))))
+         (is (contains? topology '(genlCx CxBaseKB CxCore)))
+         (is (contains? topology '(genlCx CxMammalBiology CxBaseKB)))))
 
      (testing "the meta records a load order that puts a supercontext first"
        (let [order (:context-order (read-string (slurp (io/file dir "meta.edn"))))]
-         (is (< (.indexOf ^java.util.List order 'BaseKBContext)
-                (.indexOf ^java.util.List order 'MammalBiologyContext)))))
+         (is (< (.indexOf ^java.util.List order 'CxBaseKB)
+                (.indexOf ^java.util.List order 'CxMammalBiology)))))
 
      (testing "the name table is the record of every rename"
        (let [names (read-string (slurp (io/file dir "names.edn")))]
@@ -461,17 +461,17 @@
            (is (v/isa? kb 'Rover 'animal) "a type membership plus the genl closure"))
 
          (testing "the context topology came across"
-           (is (v/sees? kb 'MammalBiologyContext 'BaseKBContext)))
+           (is (v/sees? kb 'CxMammalBiology 'CxBaseKB)))
 
          (testing "a fact is believed where Cyc stated it"
-           (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'MammalBiologyContext))))
+           (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxMammalBiology))))
 
          (testing "disjointness constrains, and metadata is read as metadata"
            (is (v/disjoint? kb 'dog 'domestic_cat))
            (is (contains? (v/props kb :symmetric) 'siblingOf)))
 
          (testing "a converted rule fires"
-           (is (seq (v/sentexes-matching kb '(mammal Rover) 'MammalBiologyContext))
+           (is (seq (v/sentexes-matching kb '(mammal Rover) 'CxMammalBiology))
                "the rule's antecedent matched the fact the same translation stored")))))))
 
 ;;; ── what the load order costs ─────────────────────────────────────────
@@ -512,7 +512,7 @@
           (let [loaded (cyc/load-dir! kb (str out) {:chain? false})]
             (is (zero? (:refused loaded))
                 (str "nothing here contradicts anything: " (pr-str (:refusals loaded))))
-            (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'BaseKBContext))
+            (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxBaseKB))
                 "the fact is kept, because every membership was loaded before it")))))))
 
 (deftest the-membership-layer-is-what-keeps-it
@@ -529,7 +529,7 @@
               (let [loaded (cyc/load-dir! kb (str out) {:chain? false})]
                 (is (= {:arg-type 1} (:refusals loaded))
                     "the relational fact is refused on Alice's partial type set")
-                (is (empty? (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'BaseKBContext))
+                (is (empty? (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxBaseKB))
                     "and no later membership brings it back — a refusal is not revisited")))))))))
 
 (deftest a-reified-nat-gets-its-result-types-however-late-they-are-stated
@@ -604,11 +604,11 @@
         (tu/with-cleared-kb [kb tu/fresh]
           (core-context/load-into kb)
           (cyc/load-dir! kb (str out) {:chain? true})
-          (v/assert kb '(dog Rover) 'BaseKBContext)
-          (is (seq (v/sentexes-matching kb '(mammal Rover) 'BaseKBContext))
+          (v/assert kb '(dog Rover) 'CxBaseKB)
+          (is (seq (v/sentexes-matching kb '(mammal Rover) 'CxBaseKB))
               "the rule Cyc said it implements in code is one vaelii can run")
           (is (seq (v/sentexes-matching kb '(sharedNotes dog "a note between curators")
-                                        'BaseKBContext))
+                                        'CxBaseKB))
               "and the editorial note is an ordinary fact"))))))
 
 (def ^:private computed-collection-dump
@@ -642,7 +642,7 @@
         (testing "and its definition is written, rather than left to the engine to mint"
           ;; an engine-minted `nat/g19374` is unreadable and different on every run,
           ;; which is exactly what a diff between two converted corpora cannot see through
-          (is (contains? (sentences-in out "BaseKBContext.monotonic.txt")
+          (is (contains? (sentences-in out "CxBaseKB.monotonic.txt")
                          '(termOfUnit city_in_country_fn_canada (CityInCountryFn Canada)))))
 
         (testing "what is still unnameable says so under its own reason"
@@ -665,8 +665,8 @@
    (fn [dir _report]
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
-       (cyc/load-dir! kb (str dir) {:keep-contexts #{'BaseKBContext} :chain? false})
-       (is (empty? (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'MammalBiologyContext))
+       (cyc/load-dir! kb (str dir) {:keep-contexts #{'CxBaseKB} :chain? false})
+       (is (empty? (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxMammalBiology))
            "a context left out of the profile contributes nothing")
-       (is (seq (v/sentexes-matching kb '(comment dog ?c) 'BaseKBContext))
+       (is (seq (v/sentexes-matching kb '(comment dog ?c) 'CxBaseKB))
            "and the one kept still loads")))))

@@ -58,7 +58,7 @@
   this reader does not read.  `(wnOffset dog_n \"n02084071\")` is written for every
   synset, and is the identifier to join on.
 
-  Each part of speech is its own context under `WordNetContext`, so a profile can load
+  Each part of speech is its own context under `CxWordNet`, so a profile can load
   the noun taxonomy without the other three."
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
@@ -78,8 +78,8 @@
   {"n" "noun" "v" "verb" "a" "adj" "s" "adj" "r" "adv"})
 
 (def ^:private pos-contexts
-  {"noun" 'WordNetNounContext "verb" 'WordNetVerbContext
-   "adj"  'WordNetAdjectiveContext "adv" 'WordNetAdverbContext})
+  {"noun" 'CxWordNetNoun "verb" 'CxWordNetVerb
+   "adj"  'CxWordNetAdjective "adv" 'CxWordNetAdverb})
 
 (def pointer-readings
   "The pointer symbols this reader has a reading for, and the vaelii predicate each
@@ -262,7 +262,7 @@
               (add! :default (list 'entails self x)))
 
             :else (add! :default (list reading self x))))))
-    {:context (pos-contexts file 'WordNetContext)
+    {:context (pos-contexts file 'CxWordNet)
      :sentences @out :drops @drops}))
 
 ;;; ── converting ────────────────────────────────────────────────────────
@@ -313,7 +313,7 @@
                :source       path
                :options      opts
                :names        names
-               :root-context 'WordNetContext
+               :root-context 'CxWordNet
                :notice
                (str "WordNet(R) is a lexical database developed at Princeton University.\n"
                     "Princeton WordNet 3.0 is distributed under the WordNet License, a\n"
@@ -364,7 +364,7 @@
    :taxonomy {:drop-predicates '#{wordForm wnOffset comment derivationallyRelated
                                   antonym alsoSee verbGroup participleOf pertainsTo
                                   topicDomain regionDomain usageDomain attribute}}
-   :nouns    {:keep-contexts #{'WordNetNounContext 'WordNetContext}}})
+   :nouns    {:keep-contexts #{'CxWordNetNoun 'CxWordNet}}})
 
 (defn load-dir!
   "Load the corpus at `dir` into `kb` — `vaelii.foreign.corpus/load-dir!` with this

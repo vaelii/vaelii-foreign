@@ -26,7 +26,7 @@
   | `C ⊑ ∃P.{v}` (`owl:hasValue`)                  | `(implies (c ?x) (p ?x V))`         |
   | `C ≡ ∃P.D`   (`owl:someValuesFrom`)            | `(implies (and (p ?x ?y) (d ?y)) (c ?x))` |
   | `C ≡ D1 ⊓ D2` (`owl:intersectionOf`)           | the rule **and** both `genl` edges  |
-  | `O owl:imports O2`                             | `(genlContext OContext O2Context)`  |
+  | `O owl:imports O2`                             | `(genlCx CxO CxO2)`  |
   | anything else                                  | `(p S O)`, a plain fact             |
 
   ## What does not, and why that is the interesting half
@@ -95,7 +95,7 @@
 
   A **named graph** is a context (that is what N-Quads' fourth term is for), and so is
   an `owl:Ontology`.  A graph that declares neither lands in one context named for the
-  source.  `owl:imports` is a `genlContext` edge, which makes an ontology's import
+  source.  `owl:imports` is a `genlCx` edge, which makes an ontology's import
   closure the context hierarchy it always was."
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
@@ -638,7 +638,7 @@
 
       (= a-imports p)
       (if (and (typed? names s :context) (typed? names o :context))
-        {:sentences [(list 'genlContext st ot)] :context :topology :strength :monotonic}
+        {:sentences [(list 'genlCx st ot)] :context :topology :strength :monotonic}
         {:dropped :unnamed-import})
 
       ;; ---- class axioms ------------------------------------------------
@@ -811,7 +811,7 @@
                :options      (cond-> opts
                                (:languages opts) (update :languages #(vec (sort %))))
                :names        names
-               :root-context (symbol (str "Rdf" (name default)))
+               :root-context (symbol (str "CxRdf" (str/replace (name default) #"\ACx" "")))
                ;; RDF is a syntax, not a source: what governs this corpus is whatever
                ;; governs the graph it was read from, and the converter cannot know
                ;; which that is.  Saying so beats guessing at a licence.

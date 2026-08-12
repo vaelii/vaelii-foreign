@@ -49,42 +49,42 @@
 (deftest the-layout-is-the-documented-one
   (written
    {:format :test/v1 :source "nowhere" :names '{a {:term a :role :type}}
-    :root-context 'TestRootContext}
+    :root-context 'CxTestRoot}
    (fn [emit!]
-     (emit! 'OneContext :monotonic ['(genl a b)])
-     (emit! 'OneContext :default   ['(a X)])
+     (emit! 'CxOne :monotonic ['(genl a b)])
+     (emit! 'CxOne :default   ['(a X)])
      {:mine 1})
    (fn [dir report]
      (testing "a context's two strengths are two files"
-       (is (= ['(genl a b)] (tu/corpus-file dir "OneContext.monotonic.txt")))
-       (is (= ['(a X)] (tu/corpus-file dir "OneContext.txt"))))
+       (is (= ['(genl a b)] (tu/corpus-file dir "CxOne.monotonic.txt")))
+       (is (= ['(a X)] (tu/corpus-file dir "CxOne.txt"))))
      (testing "the report carries the writer's counts and the reader's own"
        (is (= 2 (:sentences report)))
        (is (= 1 (:mine report)) "whatever emit-fn returned is merged in"))
      (testing "meta.edn says what it is and what order to read it in"
        (let [m (tu/corpus-meta dir)]
          (is (= :test/v1 (:format m)))
-         (is (= 'TestRootContext (:root-context m)))
-         (is (= ['TestRootContext 'OneContext] (:context-order m))))))))
+         (is (= 'CxTestRoot (:root-context m)))
+         (is (= ['CxTestRoot 'CxOne] (:context-order m))))))))
 
 (deftest every-context-is-wired-under-the-root-and-the-root-under-vaelii
   ;; No context arrives orphaned, however incomplete the source's own hierarchy was —
   ;; a sentence in a context nothing places is a sentence whose checks read nothing.
   (written
-   {:format :test/v1 :root-context 'TestRootContext}
+   {:format :test/v1 :root-context 'CxTestRoot}
    (fn [emit!]
-     (emit! 'PlacedContext :default ['(a X)])
-     (emit! 'OrphanContext :default ['(b Y)])
-     (emit! :topology :monotonic ['(genlContext PlacedContext OtherContext)])
+     (emit! 'CxPlaced :default ['(a X)])
+     (emit! 'CxOrphan :default ['(b Y)])
+     (emit! :topology :monotonic ['(genlCx CxPlaced CxOther)])
      {})
    (fn [dir _]
      (let [topology (set (tu/corpus-file dir "Topology.txt"))]
-       (is (contains? topology '(genlContext TestRootContext CoreContext))
+       (is (contains? topology '(genlCx CxTestRoot CxCore))
            "the corpus hangs off vaelii's own vocabulary at one point")
-       (is (contains? topology '(genlContext OrphanContext TestRootContext)))
-       (is (contains? topology '(genlContext PlacedContext OtherContext))
+       (is (contains? topology '(genlCx CxOrphan CxTestRoot)))
+       (is (contains? topology '(genlCx CxPlaced CxOther))
            "a context the source placed keeps its own parent")
-       (is (not (contains? topology '(genlContext PlacedContext TestRootContext)))
+       (is (not (contains? topology '(genlCx CxPlaced CxTestRoot)))
            "and is not also given the root's")))))
 
 (deftest every-corpus-carries-a-notice
@@ -92,16 +92,16 @@
   ;; written into the directory — a corpus is data on a filesystem, and the notice is
   ;; what keeps it attributable once somebody has copied it somewhere else.
   (written
-   {:format :test/v1 :source "somebody-elses-ontology.ttl" :root-context 'TestRootContext
+   {:format :test/v1 :source "somebody-elses-ontology.ttl" :root-context 'CxTestRoot
     :notice "Licensed under the Example Public License.\n"}
-   (fn [emit!] (emit! 'OneContext :default ['(a X)]) {})
+   (fn [emit!] (emit! 'CxOne :default ['(a X)]) {})
    (fn [dir _]
      (let [notice (slurp (File. ^File dir "NOTICE"))]
        (is (str/includes? notice "somebody-elses-ontology.ttl") "it names what it came from")
        (is (str/includes? notice "Example Public License") "and the reader's own terms"))))
   (testing "and a reader that supplies none still gets one that says so"
-    (written {:format :test/v1 :source "unknown.ttl" :root-context 'TestRootContext}
-             (fn [emit!] (emit! 'OneContext :default ['(a X)]) {})
+    (written {:format :test/v1 :source "unknown.ttl" :root-context 'CxTestRoot}
+             (fn [emit!] (emit! 'CxOne :default ['(a X)]) {})
              (fn [dir _]
                (is (str/includes? (slurp (File. ^File dir "NOTICE"))
                                   "does not know this source's terms"))))))
@@ -112,14 +112,14 @@
   (tu/temp-dir "vaelii-corpus-twice"
                (fn [^File dir]
                  (let [out (str (File. dir "corpus"))
-                       spec {:format :test/v1 :root-context 'TestRootContext}
+                       spec {:format :test/v1 :root-context 'CxTestRoot}
                        write! #(corpus/write! out spec (fn [emit!]
-                                                         (emit! 'OneContext :default ['(a X)])
+                                                         (emit! 'CxOne :default ['(a X)])
                                                          {}))]
                    (write!)
                    (let [report (write!)]
                      (is (= 1 (:sentences report)))
-                     (is (= ['(a X)] (tu/corpus-file (File. out) "OneContext.txt"))))))))
+                     (is (= ['(a X)] (tu/corpus-file (File. out) "CxOne.txt"))))))))
 
 ;;; ── one format, five converters ───────────────────────────────────────
 
@@ -138,13 +138,13 @@
                            "an OBO corpus loaded through the ATOMIC reader's load-dir!")
                        (is (zero? (:refused loaded)))
                        (is (v/ask? kb '(genl cell_division cellular_process)
-                                   'BiologicalProcessContext))))))))
+                                   'CxBiologicalProcess))))))))
 
 ;;; ── layering ──────────────────────────────────────────────────────────
 
 (deftest a-sentence-lands-in-the-layer-its-shape-says
   (is (= :hierarchy (corpus/layer-of '(genl a b))))
-  (is (= :hierarchy (corpus/layer-of '(genlContext AContext BContext))))
+  (is (= :hierarchy (corpus/layer-of '(genlCx CxA CxB))))
   (is (= :schema    (corpus/layer-of '(argIsa p 1 c))))
   (is (= :schema    (corpus/layer-of '(transitive p))))
   (is (= :memberships (corpus/layer-of '(dog Rover))))
@@ -193,7 +193,7 @@
                      (core-context/load-into kb)
                      (corpus/load-dir! kb out {} {:keep-layers #{:hierarchy} :chain? false})
                      (is (v/ask? kb '(genl cell_division cellular_process)
-                                 'BiologicalProcessContext))
+                                 'CxBiologicalProcess))
                      (is (empty? (v/sentexes-matching kb '(cell_division TheObservedDivision)
-                                                      'TinyContext))
+                                                      'CxTiny))
                          "the memberships layer was never read"))))))

@@ -42,8 +42,8 @@ other.
 ## Using it
 
 Add the dependency, and the engine finds the readers — Leiningen
-`[com.vaelii/vaelii-foreign "0.6.0"]`, or deps.edn
-`com.vaelii/vaelii-foreign {:mvn/version "0.6.0"}` — from
+`[com.vaelii/vaelii-foreign "0.7.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.7.0"}` — from
 [Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
 the version it was cut with, so a project naming only this one gets both.
 

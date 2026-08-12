@@ -76,7 +76,7 @@
    "NotDesires" :physical})
 
 (def ^:private family-contexts
-  {:social 'AtomicSocialContext :event 'AtomicEventContext :physical 'AtomicPhysicalContext})
+  {:social 'CxAtomicSocial :event 'CxAtomicEvent :physical 'CxAtomicPhysical})
 
 (def ^:private empty-tails
   "Tail values that are the annotation \"nothing follows here\" rather than a claim.  They
@@ -168,7 +168,7 @@
        (nil? t)                     {:dropped :unnamed-tail}
        (nil? p)                     {:dropped :unnamed-relation}
        :else
-       {:context   (family-contexts (relations relation) 'AtomicEventContext)
+       {:context   (family-contexts (relations relation) 'CxAtomicEvent)
         :sentences [(list p h t)]}))))
 
 ;;; ── converting ────────────────────────────────────────────────────────
@@ -220,7 +220,7 @@
                :source       path
                :options      opts
                :names        names
-               :root-context 'AtomicContext
+               :root-context 'CxAtomic
                :notice
                (str "ATOMIC-2020, from the Allen Institute for AI, is distributed under\n"
                     "CC-BY 4.0.  This corpus is a reformulation of it and carries the same\n"
@@ -234,7 +234,7 @@
                   ;; the node texts first, in one context: a node is reached from every
                   ;; family and its text belongs to none of them
                   (when (:node-text? opts true)
-                    (emit! 'AtomicContext :default
+                    (emit! 'CxAtomic :default
                            (vec (for [[text {:keys [term]}] (sort-by (comp str key) names)
                                       :when (string? text)]
                                   (list 'nodeText term text)))))
@@ -269,9 +269,9 @@
   every relation and drops the node texts, which are a third of the sentences."
   {:full     {}
    :ontology {:drop-predicates '#{nodeText}}
-   :social   {:keep-contexts #{'AtomicContext 'AtomicSocialContext}}
-   :physical {:keep-contexts #{'AtomicContext 'AtomicPhysicalContext}}
-   :events   {:keep-contexts #{'AtomicContext 'AtomicEventContext}}})
+   :social   {:keep-contexts #{'CxAtomic 'CxAtomicSocial}}
+   :physical {:keep-contexts #{'CxAtomic 'CxAtomicPhysical}}
+   :events   {:keep-contexts #{'CxAtomic 'CxAtomicEvent}}})
 
 (defn load-dir!
   "Load the corpus at `dir` into `kb` — `vaelii.foreign.corpus/load-dir!` with this

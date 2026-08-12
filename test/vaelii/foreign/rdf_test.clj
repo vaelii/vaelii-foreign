@@ -35,14 +35,14 @@
   ;; A graph that declares no `owl:Ontology` is named after its file, which is a guess
   ;; about somebody else's data.  `--context` is how the person converting it overrules
   ;; that, and it is the only option here that names something rather than filtering it.
-  (converted ttl-fixture {:context 'ZooContext}
+  (converted ttl-fixture {:context 'CxZoo}
              (fn [dir _]
-               (is (seq (tu/corpus-file dir "ZooContext.txt"))
+               (is (seq (tu/corpus-file dir "CxZoo.txt"))
                    "the graph's own sentences land in the context that was named")
                ;; The corpus *root* is a level above that and stays derived: it is where
                ;; the whole corpus hangs off vaelii's vocabulary, and one graph's fallback
                ;; context is content sitting under it rather than the hook itself.
-               (is (= 'RdfZooContext (:root-context (tu/corpus-meta dir)))))))
+               (is (= 'CxRdfZoo (:root-context (tu/corpus-meta dir)))))))
 
 (deftest the-rdfs-backbone-comes-across
   (converted
@@ -98,8 +98,8 @@
   ;; against it.
   (converted
    (fn [dir _]
-     (let [axioms (set (tu/corpus-file dir "ZooContext.monotonic.txt"))
-           facts  (set (tu/corpus-file dir "ZooContext.txt"))]
+     (let [axioms (set (tu/corpus-file dir "CxZoo.monotonic.txt"))
+           facts  (set (tu/corpus-file dir "CxZoo.txt"))]
        (is (contains? axioms '(genl dog mammal)))
        (is (contains? facts '(dog Rover)))
        (is (not (contains? axioms '(dog Rover))))))))
@@ -231,14 +231,14 @@
          (is (zero? (:refused loaded))
              (str "the arity declaration agrees with the tuples it was written for: "
                   (pr-str (:refusals loaded)))))
-       (is (v/ask? kb '(hasJob Bob Acme Engineer 2020) 'NaryTtlGraphContext))
+       (is (v/ask? kb '(hasJob Bob Acme Engineer 2020) 'CxNaryTtlGraph))
        (testing "and the tuple answers a pattern over any of its positions"
          (is (seq (v/sentexes-matching kb '(hasJob ?who ?emp Engineer ?yr)
-                                       'NaryTtlGraphContext))
+                                       'CxNaryTtlGraph))
              "which is the point of flattening: no join through a node to ask this"))
        (testing "a skolemized node is queryable the other way, by joining"
-         (is (seq (v/sentexes-matching kb '(award Bob ?a) 'NaryTtlGraphContext)))
-         (is (v/ask? kb '(awardName BobAward "Prize") 'NaryTtlGraphContext)))))))
+         (is (seq (v/sentexes-matching kb '(award Bob ?a) 'CxNaryTtlGraph)))
+         (is (v/ask? kb '(awardName BobAward "Prize") 'CxNaryTtlGraph)))))))
 
 (deftest a-wrong-arity-fact-is-refused-once-the-arity-is-declared
   ;; What the declaration buys.  Without it vaelii is open-world about arity and a
@@ -250,7 +250,7 @@
        (core-context/load-into kb)
        (rdf/load-dir! kb (str dir) {:chain? false})
        (let [e (is (thrown? clojure.lang.ExceptionInfo
-                            (v/assert kb '(hasJob Cid Acme) 'NaryTtlGraphContext)))]
+                            (v/assert kb '(hasJob Cid Acme) 'CxNaryTtlGraph)))]
          (is (= :arity (:type (ex-data e)))))))))
 
 (deftest a-blank-node-is-not-a-drop
@@ -272,9 +272,9 @@
   (converted
    (fn [dir _]
      (is (contains? (set (tu/corpus-file dir "Topology.txt"))
-                    '(genlContext ZooContext UpperContext))
+                    '(genlCx CxZoo CxUpper))
          "owl:imports is the context hierarchy it always was")
-     (is (= 'ZooContext (first (filter #(= 'ZooContext %) (:context-order (tu/corpus-meta dir)))))
+     (is (= 'CxZoo (first (filter #(= 'CxZoo %) (:context-order (tu/corpus-meta dir)))))
          "and the ontology the file declares is where its statements land"))))
 
 (deftest a-named-graph-is-a-context
@@ -282,9 +282,9 @@
   ;; somebody has already said which statements belong together.
   (converted nq-fixture {}
              (fn [dir _]
-               (is (= #{'(dog Rex) '(age Rex 3)} (set (tu/corpus-file dir "ShelterContext.txt"))))
+               (is (= #{'(dog Rex) '(age Rex 3)} (set (tu/corpus-file dir "CxShelter.txt"))))
                (is (= #{'(genl dog mammal)}
-                      (set (tu/corpus-file dir "TaxonomyContext.monotonic.txt")))))))
+                      (set (tu/corpus-file dir "CxTaxonomy.monotonic.txt")))))))
 
 ;;; ── the corpus loads ──────────────────────────────────────────────────
 
@@ -299,16 +299,16 @@
              (str "nothing here contradicts anything: " (pr-str (:refusals loaded))))
          (v/forward-chain kb {})
          (testing "the asserted membership is there"
-           (is (v/ask? kb '(dog Rover) 'ZooContext)))
+           (is (v/ask? kb '(dog Rover) 'CxZoo)))
          (testing "and the taxonomy carries it upward"
-           (is (v/ask? kb '(mammal Rover) 'ZooContext)
+           (is (v/ask? kb '(mammal Rover) 'CxZoo)
                "Rover is a Mammal through (genl dog mammal)")
-           (is (v/ask? kb '(animal Rover) 'ZooContext)
+           (is (v/ask? kb '(animal Rover) 'CxZoo)
                "and an Animal through the closure"))
          (testing "the universal restriction fired"
-           (is (v/ask? kb '(limb RoverLeg) 'ZooContext)))
+           (is (v/ask? kb '(limb RoverLeg) 'CxZoo)))
          (testing "the sufficient condition fired"
-           (is (v/ask? kb '(bodied Rover) 'ZooContext)
+           (is (v/ask? kb '(bodied Rover) 'CxZoo)
                "Rover has a Limb part, so Rover is Bodied")))))))
 
 (deftest a-profile-selects-a-subset
@@ -317,8 +317,8 @@
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
        (rdf/load-dir! kb (str dir) {:profile :schema :chain? false})
-       (is (v/ask? kb '(genl dog mammal) 'ZooContext) "the axioms loaded")
-       (is (not (v/ask? kb '(dog Rover) 'ZooContext))
+       (is (v/ask? kb '(genl dog mammal) 'CxZoo) "the axioms loaded")
+       (is (not (v/ask? kb '(dog Rover) 'CxZoo))
            "and the instance data did not — which is what :schema is for")))))
 
 ;;; ── RDF/XML is the same graph in another syntax ───────────────────────
@@ -364,6 +364,6 @@
        (rdf/load-dir! kb (str dir) {:chain? false})
        (v/forward-chain kb {})
        (testing "everything the Turtle fixture proves, the RDF/XML one proves too"
-         (is (v/ask? kb '(animal Rover) 'ZooContext) "the taxonomy closure")
-         (is (v/ask? kb '(limb RoverLeg) 'ZooContext) "the universal restriction")
-         (is (v/ask? kb '(bodied Rover) 'ZooContext) "the sufficient condition"))))))
+         (is (v/ask? kb '(animal Rover) 'CxZoo) "the taxonomy closure")
+         (is (v/ask? kb '(limb RoverLeg) 'CxZoo) "the universal restriction")
+         (is (v/ask? kb '(bodied Rover) 'CxZoo) "the sufficient condition"))))))

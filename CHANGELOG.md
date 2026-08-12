@@ -16,6 +16,31 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.7.0] — 2026-08-12
+
+**Breaking, and reader-facing for once: a context is spelled `Cx`-prefixed.** The engine's
+naming invariant moved the role marker from the end of a context name to the front, so the
+speller prepends where it appended — Cyc's `EnglishMt` reads back as `CxEnglish`, `BaseKB`
+as `CxBaseKB`, and an RDF corpus roots at `CxRdf<Graph>`. *Migration:* a corpus converted
+by an earlier version names its contexts the other way, and those are names the engine now
+refuses on assert; re-convert the source rather than re-reading the corpus.
+
+The context-transitivity predicate moved with it: every reader that laid down a
+`genlContext` edge — Cyc's `genlMt`, an RDF graph's rooting, WordNet's hypernym layering —
+now writes `genlCx`. A corpus carrying the old spelling holds edges under a predicate the
+taxonomy no longer reads, which is the second reason to re-convert rather than re-read.
+
+The corpus **format** is untouched — `:format` stays `:vaelii-rdf-corpus/v1` and an old
+directory still opens — so this is the translation kind of change rather than the format
+kind, and it is the whole of the difference between two corpora converted across it. Cyc's
+own vocabulary is not involved: `EnglishMt`, `BaseKB` and `genlMt` are identifiers in
+someone else's system and keep their spellings, which is what the reader translates *from*.
+
+Two smaller consequences of a marker that leads rather than trails. The guard keeping a
+foreign individual from reading as a context prepends to break the collision, appending
+being unable to disturb what the front of a name says; and the digit-splicing a suffixed
+name needed to stay well-formed is gone for the same reason.
+
 ## [0.6.0] — 2026-08-12
 
 No reader-facing change, no corpus-format change, and nothing here a caller can observe.
@@ -155,6 +180,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.7.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.4.0...v0.5.0
