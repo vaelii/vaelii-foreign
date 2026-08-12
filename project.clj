@@ -1,4 +1,4 @@
-(defproject com.vaelii/vaelii-foreign "0.7.0"
+(defproject com.vaelii/vaelii-foreign "0.7.1-SNAPSHOT"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
                 vaelii's plugin seam."
