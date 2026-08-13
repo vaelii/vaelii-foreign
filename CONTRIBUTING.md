@@ -66,6 +66,17 @@ Shared coding, commit, and review conventions follow the core engine's
 - Comments describe what the code does now, never what it used to do.
 - `Co-Authored-By:` / `Co-developed-by:` trailers are **human-only** — welcome
   for human collaborators, never for a tool, bot, or other non-human author.
+  The same holds for a commit's `author` and its `committer`, and for the
+  `Signed-off-by:` the DCO requires: each names a party making a claim, and a
+  tool, bot or agent can make none of them.
+- The **`authorship`** check decides that, beside `DCO`. Every author, committer
+  and trailer on a pull request has to appear in
+  [`.github/AUTHORS.roster`](.github/AUTHORS.roster), which a maintainer writes
+  on `develop`, so a first pull request waits on being added — one line, and it
+  carries to every later one. It is a judgement about who stands behind an
+  account, never about the tools someone writes with. Blocked work is a rebase
+  and not a rejection: re-author under whoever signs off, drop the trailers
+  naming anyone else, force-push.
 
 Run [`lein gate`](README.md#development) before opening a pull request: it is
 `lein lint` and then the suite.
