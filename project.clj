@@ -1,4 +1,4 @@
-(defproject com.vaelii/vaelii-foreign "0.7.0"
+(defproject com.vaelii/vaelii-foreign "0.8.0"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
                 vaelii's plugin seam."
@@ -28,7 +28,7 @@
   ;; `vaelii.impl.*`, which vaelii is free to change — that cost is the plugin's to
   ;; carry, and is the reason a bridge lives out here rather than in the engine.
   :dependencies [[org.clojure/clojure "1.12.5"]
-                 [com.vaelii/vaelii "0.7.0"]
+                 [com.vaelii/vaelii "0.8.0"]
                  ;; Arrives transitively through vaelii and is required directly by code
                  ;; here — trove carries the conversion's progress log — so naming it
                  ;; makes it a promise rather than an accident of somebody else's
@@ -47,30 +47,33 @@
   ;; Static-analysis gates ported from the engine, trimmed to what applies out here
   ;; (the glossary / doc-drift / unused-publics gates are coupled to core's KB and
   ;; baselines and are not carried).
-  ;;   lein lint    — kondo + shellcheck + cljfmt + reflect via scripts/lint.sh, one
-  ;;                  ✓/✗ line per check, runs all (not fail-fast).  VERBOSE=1 dumps
-  ;;                  each check's full output.
+  ;;   lein lint    — versions + kondo + shellcheck + cljfmt + reflect + authorship
+  ;;                  via scripts/lint.sh, one ✓/✗ line per check, runs all (not
+  ;;                  fail-fast).  VERBOSE=1 dumps each check's full output.
   ;;   lein fix     — the only auto-repair: cljfmt rewrites in place.  kondo and
   ;;                  reflect are check-only; a red run is manual.
   ;;   lein gate    — lint, then (only if green) the suite.
   ;; The lint-* sub-aliases stay for granular one-off runs.  Needs clj-kondo on PATH;
   ;; reflect shells out to lein's built-in `check` (AOT compile).
-  :aliases {"lint-kondo"   ["shell" "clj-kondo" "--lint" "src" "test"]
+  :aliases {"lint-kondo"      ["shell" "clj-kondo" "--lint" "src" "test"]
             ;; Formatting diff (read-only) in the +cljfmt profile, so the plugin's deps
             ;; stay off the kondo / reflect subtasks.  `lein fix` is the rewrite half.
-            "lint-cljfmt"  ["cljfmt" "check"]
+            "lint-cljfmt"     ["cljfmt" "check"]
             ;; Reflection / auto-boxing ratchet: AOT-compiles src under the top-level
             ;; *warn-on-reflection* and fails on any warning from our code.  Slowest of
             ;; the three (it compiles), so `lint` runs it last.
-            "lint-reflect" ["shell" "bash" "scripts/check-reflection.sh"]
-            "lint"         ["shell" "bash" "scripts/lint.sh"]
-            "fix"          ["cljfmt" "fix"]
-            "gate"         ["do" ["lint"] ["test"]]
+            "lint-reflect"    ["shell" "bash" "scripts/check-reflection.sh"]
+            ;; the `authorship` CI gate's rules, against synthetic commits — the gate
+            ;; runs only on a pull request, so this is where they are exercised first
+            "lint-authorship" ["shell" "python3" "scripts/check-authorship.py" "--selftest"]
+            "lint"            ["shell" "bash" "scripts/lint.sh"]
+            "fix"             ["cljfmt" "fix"]
+            "gate"            ["do" ["lint"] ["test"]]
             ;; cljfmt's :indents REPLACE the built-in defaults, so our macro
             ;; body-indents (cljfmt-indents.edn) go in :extra-indents.
-            "cljfmt"       ["with-profile" "+cljfmt" "cljfmt"]
+            "cljfmt"          ["with-profile" "+cljfmt" "cljfmt"]
             ;; the converter, with room to hold a corpus (see the :convert profile)
-            "convert"      ["with-profile" "+convert" "run"]}
+            "convert"         ["with-profile" "+convert" "run"]}
   ;; `shell` task: lets the lint aliases run scripts/*.sh from lein.
   :plugins [[lein-shell "0.5.0"]]
   :profiles {:uberjar {:aot :all}

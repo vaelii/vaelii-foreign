@@ -16,6 +16,33 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.8.0] — 2026-08-14
+
+**Nothing here reaches a reader, and the number moves anyway.** The engine and this
+plugin release in lockstep — one version string across the pair, checked at the cut —
+so an engine minor carries the plugin's number with it whether or not this repo earned
+one. No reader map, no `load-dir!` signature and no `:format` line moves, and a corpus
+converted by 0.7.0 opens unchanged. There is nothing to migrate.
+
+**The engine pin follows the tree it is built against**, which is where the release
+actually lands for a caller: this artifact depends on the engine at the version it was
+cut with, so a project naming only this one now gets engine 0.8.0. That engine release
+is twenty Breaking entries wide — the definitional marks and the argument constraints
+descend a `genl` edge, a KB whose derived state was never built refuses writes, and a
+firing names the `genlCx` edges its placement was read over. Read its changelog before
+upgrading; none of it is this repo's to migrate, and all of it is underneath you.
+
+One thing to know if you drive the converter directly: `lein convert load` opens its
+destination `{:recover? false}` and then asserts into it. That is still correct, and
+narrowly so — an *empty* store carries no hazard, and the first write into one builds
+the network as it goes. Pointed at a store that already holds records, the same command
+now meets the engine's `:unrecovered-kb` refusal.
+
+**The authorship gate is the repo's own** rather than a copy of the engine's. It cites
+the sections this repo has, reads the roster it asked for, blocks what it says it
+blocks, and stays quiet on every trigger but `pull_request`, where there is something
+to read.
+
 ## [0.7.0] — 2026-08-12
 
 **Breaking, and reader-facing for once: a context is spelled `Cx`-prefixed.** The engine's
