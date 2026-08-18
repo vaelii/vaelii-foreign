@@ -16,6 +16,23 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.9.0] — 2026-08-17
+
+**Nothing here reaches a reader, and the number moves anyway.** The engine and this
+plugin release in lockstep — one version string across the pair, checked at the cut —
+so an engine minor carries the plugin's number with it whether or not this repo earned
+one. No reader map, no `load-dir!` signature and no `:format` line moves, and a corpus
+converted by 0.8.0 opens unchanged. There is nothing to migrate.
+
+**The engine pin follows the tree it is built against**: this artifact now depends on
+engine 0.9.0, so a project naming only this one gets it. That engine release defaults
+the truth-maintenance network to the dense representation — belief-identical to the old
+one, ~3.8× less JTMS memory at scale — and carries five Breaking entries: the strength a
+subsumption is reported at can rise from `:default` to `:monotonic`, the
+algebraic-property `…Predicate` twin types collapse to the bare marks, `person` splits
+from `human`, and `argPreserving` is renamed `transitiveInArg`. Read its changelog
+before upgrading; none of it is this repo's to migrate, and all of it is underneath you.
+
 ## [0.8.0] — 2026-08-14
 
 **Nothing here reaches a reader, and the number moves anyway.** The engine and this
