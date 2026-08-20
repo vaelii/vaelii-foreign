@@ -64,8 +64,8 @@
        (is (contains? ss '(disjoint cell_division membrane)))
        (is (contains? ss '(transitive partOf)))
        (is (contains? ss '(inverse partOf hasPart)))
-       (is (contains? ss '(argIsa partOf 1 cellular_process)))
-       (is (contains? ss '(argIsa partOf 2 cellular_process)))))))
+       (is (contains? ss '(arg partOf 1 cellular_process)))
+       (is (contains? ss '(arg partOf 2 cellular_process)))))))
 
 (deftest a-relationship-is-read-at-the-class-level
   ;; Deliberately weaker than the OWL mapping, which makes it an existential restriction

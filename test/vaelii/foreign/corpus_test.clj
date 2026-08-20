@@ -145,7 +145,7 @@
 (deftest a-sentence-lands-in-the-layer-its-shape-says
   (is (= :hierarchy (corpus/layer-of '(genl a b))))
   (is (= :hierarchy (corpus/layer-of '(genlCx CxA CxB))))
-  (is (= :schema    (corpus/layer-of '(argIsa p 1 c))))
+  (is (= :schema    (corpus/layer-of '(arg p 1 c))))
   (is (= :schema    (corpus/layer-of '(transitive p))))
   (is (= :memberships (corpus/layer-of '(dog Rover))))
   (is (= :facts     (corpus/layer-of '(ownerOf Alice Rover))))

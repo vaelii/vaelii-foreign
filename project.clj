@@ -1,4 +1,4 @@
-(defproject com.vaelii/vaelii-foreign "0.9.0"
+(defproject com.vaelii/vaelii-foreign "0.10.0"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
                 vaelii's plugin seam."
@@ -28,7 +28,7 @@
   ;; `vaelii.impl.*`, which vaelii is free to change — that cost is the plugin's to
   ;; carry, and is the reason a bridge lives out here rather than in the engine.
   :dependencies [[org.clojure/clojure "1.12.5"]
-                 [com.vaelii/vaelii "0.9.0"]
+                 [com.vaelii/vaelii "0.10.0"]
                  ;; Arrives transitively through vaelii and is required directly by code
                  ;; here — trove carries the conversion's progress log — so naming it
                  ;; makes it a promise rather than an accident of somebody else's

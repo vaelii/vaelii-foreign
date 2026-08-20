@@ -16,6 +16,55 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.10.0] — 2026-08-20
+
+**This one reaches a reader: the converter learns the engine's mention vocabulary and
+follows its argument-constraint rename.** Two surfaces of Cyc that used to translate
+poorly — a term typed *as a term*, and the constraint predicates the engine just renamed
+— now convert into the vocabulary the 0.10.0 engine reasons over.
+
+**Cyc's mention typing converts instead of passing through inert.** `(quotedIsa X C)` —
+Cyc's way of typing a term *as syntax*, ~46.7k assertions in OpenCyc — used to survive
+translation as an inert binary fact with `X` renamed as an ordinary *used* term. It now
+folds to `(c (Quote X))`: `X` named as syntax and typed a `C`, through the engine's new
+mention machinery — `Quote` is a `reifiableFunction` and a `quotingFunction`, so
+`(Quote X)` reifies to a mention constant the type predicate reads opaque, congruent only
+up to spelling. A quoted-only term is no longer spelled apart from its used occurrences by
+residue. *Translation change* — a corpus converted before dropped the typing into an inert
+fact; one converted after carries it as a mention the engine reasons over.
+
+**`argQuotedIsa` becomes `quotedArg`, typed against a syntactic type.** Cyc `argQuotedIsa`
+/ `argNQuotedIsa` type an argument *as a term*; they now translate to vaelii's `quotedArg`,
+the mention twin of `arg`, with the Cyc quoted-type collection mapped through a syntactic
+reading — `CharacterString` / `SubLString → string`, `SubLSymbol` / `CycLConstant →
+symbol`, the SubL integer and number families → `integer` / `number`. A collection with no
+syntactic reading renames ordinarily, leaving an inert `quotedArg` the engine reads
+open-world rather than a false refusal. *Translation change.*
+
+**The CycL, OBO and RDF readers emit the engine's renamed argument-constraint vocabulary.**
+Following the engine rename `argIsa → arg`, `argGenl → genlArg`, the readers now translate
+to the renamed predicates, and the `argNIsa` / `argNGenl` family folds to `arg` /
+`genlArg`. Cyc's own source names (`cyc/argIsa`, `#$argIsa`) are unchanged — only the
+translation *targets* move. *Migration:* a corpus converted by an earlier version names
+these constraints `argIsa` / `argGenl`, which the 0.10.0 engine refuses on assert;
+re-convert the source rather than re-reading the corpus.
+
+**The quote-vocabulary preamble rides only with a Quote-bearing corpus.** The preamble that
+declares `Quote` — and with it `(quotingFunction Quote)`, which arms the engine's
+mention-opacity congruence walk — is emitted into `CxBaseKB` only when the output actually
+contains a `Quote` (a `quotedIsa` the converter folded, or a raw `#$Quote` passed through).
+A Quote-free import no longer pays the mention-aware per-node property read across the whole
+corpus, so the engine's zero-cost-until-declared gate holds. It errs toward emitting: an
+over-emitted preamble is harmless, a missed one would leave a live mention un-opaque.
+
+**The engine pin follows the tree it is built against**: this artifact now depends on engine
+0.10.0. That release renames the argument-constraint family (`argIsa → arg`, `argGenl →
+genlArg`, `interArgIsa → interArg` — Breaking, and the reason this converter's targets
+moved), adds the mention-opacity vocabulary this release emits (`quotingFunction`,
+`quotedArg`), and layers on koinii multi-agent coordination, belief projection and
+reified-NAT contexts. None of it is this repo's to migrate, and all of it is underneath
+you. Read its changelog before upgrading.
+
 ## [0.9.0] — 2026-08-17
 
 **Nothing here reaches a reader, and the number moves anyway.** The engine and this
@@ -224,6 +273,9 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.10.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.9.0...v0.10.0
+[0.9.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/vaelii/vaelii-foreign/compare/v0.5.0...v0.5.1

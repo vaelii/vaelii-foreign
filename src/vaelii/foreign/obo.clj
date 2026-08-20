@@ -38,7 +38,7 @@
   | `disjoint_from: X`                 | `(disjoint this x)`                           |
   | `intersection_of:` (all plain)     | both `genl` edges **and** the sufficient-condition rule |
   | `union_of: X`                      | `(genl x this)`, each member                  |
-  | `domain:` / `range:`               | `(argIsa p 1 c)` / `(argIsa p 2 c)`           |
+  | `domain:` / `range:`               | `(arg p 1 c)` / `(arg p 2 c)`           |
   | `is_transitive:` and its siblings  | `(transitive p)`, `(symmetric p)`, …          |
   | `inverse_of: Q`                    | `(inverse p q)`                               |
   | `holds_over_chain: A B`            | `(implies (and (a ?x ?y) (b ?y ?z)) (p ?x ?z))` |
@@ -359,8 +359,8 @@
         (when (and (:functional? opts) (true-tag? stanza "is_functional"))
           (axiom (list 'functional self)))
         (when-let [x (some-> (tag stanza "inverse_of") t)] (axiom (list 'inverse self x)))
-        (when-let [x (some-> (tag stanza "domain") t)]     (axiom (list 'argIsa self 1 x)))
-        (when-let [x (some-> (tag stanza "range") t)]      (axiom (list 'argIsa self 2 x)))
+        (when-let [x (some-> (tag stanza "domain") t)]     (axiom (list 'arg self 1 x)))
+        (when-let [x (some-> (tag stanza "range") t)]      (axiom (list 'arg self 2 x)))
         ;; `holds_over_chain: A B` is `A ∘ B ⊑ this`, and `transitive_over: R` is
         ;; `this ∘ R ⊑ this` — the same rule with one link already named
         (doseq [c (tags stanza "holds_over_chain")]

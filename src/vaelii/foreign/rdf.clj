@@ -15,7 +15,7 @@
   | `C rdfs:subClassOf D`                          | `(genl c d)`                        |
   | `X rdf:type C`                                 | `(c X)`                             |
   | `P rdfs:subPropertyOf Q`                       | `(genl p q)`                        |
-  | `P rdfs:domain C` / `rdfs:range C`             | `(argIsa p 1 c)` / `(argIsa p 2 c)` |
+  | `P rdfs:domain C` / `rdfs:range C`             | `(arg p 1 c)` / `(arg p 2 c)` |
   | `C owl:disjointWith D`                         | `(disjoint c d)`                    |
   | `owl:AllDisjointClasses`                       | `(disjoint …)`, pairwise            |
   | `P owl:inverseOf Q`                            | `(inverse p q)`                     |
@@ -666,10 +666,10 @@
       (or (= a-domain p) (= a-range p))
       (cond
         (nil? ot)                     {:dropped :unnamed-constraint}
-        ;; a datatype range is a constraint on a value, and vaelii's `argIsa` names a
+        ;; a datatype range is a constraint on a value, and vaelii's `arg` names a
         ;; type of term — the claim does not survive the trip and is not faked
         (str/starts-with? (ttl/iri-str o) ttl/xsd) {:dropped :datatype-range}
-        :else (axiom (list 'argIsa st (if (= a-domain p) 1 2) ot)))
+        :else (axiom (list 'arg st (if (= a-domain p) 1 2) ot)))
 
       (= a-chain p)
       (let [members (some->> (rdf-list bnodes o) (keep t))]

@@ -22,7 +22,7 @@
   * **Cyc says with a predicate what vaelii says with a record field.**  `(isa P
     TransitiveBinaryPredicate)` is vaelii's `(transitive P)`; `(genls A B)` is
     `(genl a b)`; `(genlMt A B)` is `(genlCx CxA CxB)`; `(arg1Isa P
-    C)` is `(argIsa p 1 c)`; a `:monotonic` assertion is a `{:strength :monotonic}`
+    C)` is `(arg p 1 c)`; a `:monotonic` assertion is a `{:strength :monotonic}`
     premise.  Everything without such a mapping stays an ordinary fact under its own
     (renamed) predicate — uninterpreted by the engine but stored, indexed and
     queryable, which is the honest outcome for vocabulary vaelii has no theory of.
@@ -143,6 +143,57 @@
   "Cyc metatypes that map to vaelii's `functional`, behind `:functional?`."
   '{cyc/FunctionalPredicate functional cyc/StrictlyFunctionalSlot functional
     cyc/FunctionalSlot functional})
+
+(def cycl-collection-names
+  "Cyc's `CycL*` syntactic collections to vaelii snake_case types.  `term`'s tokenizer
+  spells `CycLConstant` as `cyc_l_constant` (the `L` a maximal uppercase run), so the
+  `quotedIsa` translation renames the mentioned term's collection through this table
+  instead — its targets are the `cycl_*` hierarchy `quote-vocabulary` declares.  A
+  collection not here renames the ordinary way, an isolated `cyc_l_*` type."
+  '{cyc/CycLExpression                cycl_expression
+    cyc/CycLDenotationalTerm          cycl_denotational_term
+    cyc/CycLReifiableDenotationalTerm cycl_reifiable_denotational_term
+    cyc/CycLClosedDenotationalTerm    cycl_closed_denotational_term
+    cyc/CycLConstant                  cycl_constant
+    cyc/CycLFormula                   cycl_formula
+    cyc/CycLSentence                  cycl_sentence
+    cyc/CycLClosedAtomicSentence      cycl_closed_atomic_sentence
+    cyc/CycLVariable                  cycl_variable})
+
+(def cyc-syntactic-types
+  "Cyc's SubL / string quoted-type collections to vaelii's syntactic types (the roots
+  `vaelii.impl.checks/syntactic-roots` names), so `(argQuotedIsa p n CharacterString)`
+  becomes the `(quotedArg p n string)` the engine actually checks against a literal's kind.
+  A collection with no syntactic reading renames the ordinary way — an inert `quotedArg` on
+  a domain type the check reads open-world, so an unmapped Cyc type is never mistranslated
+  into a false refusal."
+  '{cyc/CharacterString string  cyc/SubLString             string
+    cyc/SubLSymbol      symbol  cyc/CycLConstant           symbol   cyc/SubLAtomicTerm symbol
+    cyc/SubLInteger     integer cyc/PositiveInteger        integer  cyc/SubLNonNegativeInteger integer
+    cyc/SubLRealNumber  number  cyc/SubLNumber             number})
+
+(def quote-vocabulary
+  "The fixed preamble a `Quote`-bearing corpus needs, emitted into `CxBaseKB` before the
+  facts (like the computed-collection definitions) and **only** when a `Quote` term will
+  appear — whether from a `quotedIsa` or a raw `#$Quote` in the dump (`convert!`'s
+  `quotes?`): `Quote` as a **reifiable quoting function** — a reified `(Quote X)` mentions
+  `X` as syntax and is held opaque to an identity merge of its referent (vaelii
+  `quotingFunction`) — landing every quoted term in the `cycl_expression` tree, plus that
+  syntactic-type hierarchy.  `Quote` reuses the engine's NAT machinery, so a quoted term
+  needs no new engine support to reify and type.  `(quotingFunction Quote)` here is what
+  arms the engine's mention-opacity walk; since `Quote` is definitionally quoting, this
+  rides with the functor — present wherever `Quote` is, and nowhere else."
+  '[(reifiableFunction Quote)
+    (quotingFunction Quote)
+    (resultIsa Quote cycl_expression)
+    (genl cycl_denotational_term          cycl_expression)
+    (genl cycl_reifiable_denotational_term cycl_denotational_term)
+    (genl cycl_closed_denotational_term   cycl_denotational_term)
+    (genl cycl_constant                   cycl_reifiable_denotational_term)
+    (genl cycl_formula                    cycl_expression)
+    (genl cycl_sentence                   cycl_formula)
+    (genl cycl_closed_atomic_sentence     cycl_sentence)
+    (genl cycl_variable                   cycl_expression)])
 
 (def excluded-predicates
   "Cyc predicates dropped wholesale, each under the reason it is dropped **for** —
@@ -305,7 +356,12 @@
                                 (functional-metatypes (second args))))
                      (update acc :declared-predicate (fnil conj #{}) (first args))
                      acc)]
-      (reduce (if logical? note-formula note-term) acc args))))
+      ;; `quotedIsa`'s arg 1 is a **mention** — the term named as syntax — so it is not
+      ;; walked into `:seen`, which would make a term that appears only quoted an individual
+      ;; by residue and spell it apart from its used occurrences.  Its collection (arg 2) is
+      ;; still classified through `collection-args` above and the walk below.
+      (reduce (if logical? note-formula note-term) acc
+              (if (= 'cyc/quotedIsa head) (rest args) args)))))
 
 (defn classify
   "Pass 1.  Read every assertion and return `{role #{constant …}}` — the raw
@@ -513,17 +569,41 @@
       "cyc/disjointWith" (when binary? (list 'disjoint (term (arg 1)) (term (arg 2))))
       "cyc/comment"      (when (string? (arg 2)) (list 'comment (term (arg 1)) (arg 2)))
       "cyc/argIsa"       (when (integer? (arg 2))
-                           (list 'argIsa (term (arg 1)) (arg 2) (term (arg 3))))
+                           (list 'arg (term (arg 1)) (arg 2) (term (arg 3))))
+      "cyc/argGenl"      (when (integer? (arg 2))
+                           (list 'genlArg (term (arg 1)) (arg 2) (term (arg 3))))
+      ;; `(argQuotedIsa P n C)` types argument n **as a term** — vaelii's `quotedArg`, with
+      ;; the Cyc quoted-type collection mapped to a syntactic type where it has one.
+      "cyc/argQuotedIsa" (when (integer? (arg 2))
+                           (list 'quotedArg (term (arg 1)) (arg 2)
+                                 (or (cyc-syntactic-types (arg 3)) (term (arg 3)))))
       ;; `(isa I C)` is vaelii's `(c I)`: a type *is* the unary predicate.  A computed
       ;; collection was minted a type name in pass 1 and renames to one; anything that
       ;; still comes back structural has no functor to be written with.
       "cyc/isa"          (let [c (term (arg 2))]
                            (when (symbol? c) (list c (term (arg 1)))))
+      ;; `(quotedIsa X C)` is `(isa X C)` said of `X` **as syntax**: the term `X`, not its
+      ;; referent, is a `C`.  vaelii has no `isa`, so it is the unary membership `(c (Quote
+      ;; X))` — `Quote` reifies `(Quote X)` to a mention constant that `c` types.  `X` stays
+      ;; a live symbol (spelling stays congruent with its used occurrences); the collection
+      ;; renames through `cycl-collection-names` so `CycLConstant` is `cycl_constant`, not
+      ;; `cyc_l_constant`.
+      "cyc/quotedIsa"    (when binary?
+                           (let [c (or (cycl-collection-names (arg 2)) (term (arg 2)))]
+                             (when (symbol? c) (list c (list 'Quote (term (arg 1)))))))
       (if-let [n (arg-isa-position head)]
-        ;; the argNIsa / argNGenl / argNFormat family folds into one positional form
-        (let [kind (subs (cycl/cyc-name head) (count (str "arg" n)))]
-          (if (= "Isa" kind)
-            (list 'argIsa (term (arg 1)) n (term (arg 2)))
+        ;; the argNIsa / argNGenl / argNQuotedIsa / argNFormat family folds into one
+        ;; positional form — Isa/Genl/QuotedIsa to the renamed `arg` / `genlArg` /
+        ;; `quotedArg` (its type through the syntactic map), the rest kept under their
+        ;; concatenated spelling (an inert `argFormat`, etc.).
+        (let [kind   (subs (cycl/cyc-name head) (count (str "arg" n)))
+              target ({"Isa" 'arg, "Genl" 'genlArg} kind)]
+          (cond
+            (= "QuotedIsa" kind)
+            (list 'quotedArg (term (arg 1)) n (or (cyc-syntactic-types (arg 2)) (term (arg 2))))
+            target
+            (list target (term (arg 1)) n (term (arg 2)))
+            :else
             (apply list (symbol (str "arg" kind)) (term (arg 1)) n (map term (rest args)))))
         (apply list (term head) (map term args))))))
 
@@ -728,7 +808,18 @@
      (trove/log! {:level :info :id ::classify :msg "pass 1: classifying constants"})
      (let [evidence (with-assertions dump-path #(classify (cap %)))
            role-map (roles (dissoc evidence :nat-context :nat-type))
-           names    (name-table role-map (:nat-context evidence) (:nat-type evidence))]
+           names    (name-table role-map (:nat-context evidence) (:nat-type evidence))
+           ;; `Quote` is *definitionally* a quoting function, so its preamble — including
+           ;; `(quotingFunction Quote)`, which arms the engine's mention-opacity walk —
+           ;; must be present whenever a `Quote` term is, and absent otherwise (the engine's
+           ;; zero-cost-until-declared contract).  Two things put a `Quote` in the output:
+           ;; the `quotedIsa` arm emits one, and a raw `#$Quote` in the dump renames to it
+           ;; and passes through.  Pass 1 saw both — `quotedIsa` as a predicate head, `Quote`
+           ;; as a seen constant — so the union is the exact condition, erring toward
+           ;; emitting (a dropped occurrence over-emits harmlessly; a missed one would leave
+           ;; a live mention un-opaque).
+           quotes?  (or (contains? (:head evidence) 'cyc/quotedIsa)
+                        (contains? (:seen evidence) 'cyc/Quote))]
        (trove/log! {:level :info :id ::translate
                     :msg (str "pass 2: translating (" (count names) " constants)")})
        (let [report
@@ -761,8 +852,9 @@
                   ;; The computed collections, defined before anything uses one — see
                   ;; `corpus/term-definition?` for why that is an ordering requirement
                   ;; and not a preference.  They go in the root context because a term's
-                  ;; identity is not a claim any one microtheory gets to hold.
-                  (emit! 'CxBaseKB :monotonic defs)
+                  ;; identity is not a claim any one microtheory gets to hold.  The quote
+                  ;; preamble rides beside them, before the first `(cycl_… (Quote …))`.
+                  (emit! 'CxBaseKB :monotonic (into (if quotes? quote-vocabulary []) defs))
                   (with-assertions
                     dump-path
                     (fn [as]

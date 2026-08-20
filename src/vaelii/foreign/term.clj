@@ -7,7 +7,7 @@
   *shape encodes its role* (`vaelii.impl.naming`):
 
       type         snake_case                 dog, physical_object
-      predicate    camelCase                  parentOf, argIsa
+      predicate    camelCase                  parentOf, arg
       individual   CapitalCamelCase           Rover, Einstein
       function     CapitalCamelCase           GroupFn
       context      Cx + CapitalCamelCase   CxUniverse

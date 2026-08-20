@@ -167,9 +167,9 @@
         all (set (mapcat :sentences (mapcat val t)))]
     (is (= '#{(genl dog mammal) (genl mammal animal)} (of 'cyc/genls)))
     (is (= '#{(disjoint dog domestic_cat)} (of 'cyc/disjointWith)))
-    (is (= '#{(argIsa ownerOf 1 person_legal)} (of 'cyc/arg1Isa))
-        "the argNIsa family folds into one positional argIsa")
-    (is (= '#{(argIsa ownerOf 2 dog)} (of 'cyc/argIsa)))
+    (is (= '#{(arg ownerOf 1 person_legal)} (of 'cyc/arg1Isa))
+        "the argNIsa family folds into one positional arg")
+    (is (= '#{(arg ownerOf 2 dog)} (of 'cyc/argIsa)))
     (is (= '#{(ownerOf AlicePerson Rover)} (of 'cyc/ownerOf)))
 
     (testing "a type membership is a unary predicate application"
@@ -374,6 +374,55 @@
               (is (seq (v/sentexes-matching kb '(noisy Rover) 'CxBaseKB))
                   "the Horn disjunction fired as the rule it is"))))))))
 
+(deftest the-quote-preamble-is-emitted-only-for-a-quoting-corpus
+  ;; `(quotingFunction Quote)` arms the engine's mention-opacity walk, so a corpus that
+  ;; never mentions a term (no `quotedIsa`) must not carry it — the engine's
+  ;; zero-cost-until-declared contract.  A quoting corpus does declare it.
+  (testing "a corpus WITH quotedIsa declares the quote machinery and the mention lands"
+    (with-dump-file
+      (str/join "\n"
+                ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$quotedIsa #$Dog #$CycLConstant) #$BaseKB :monotonic :forward)"])
+      (fn [dump ^File dir]
+        (let [out (io/file dir "corpus")]
+          (cyc/convert! dump (str out) {})
+          (tu/with-cleared-kb [kb tu/fresh]
+            (core-context/load-into kb)
+            (cyc/load-dir! kb (str out) {:chain? true})
+            (is (seq (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+                "the opacity gate is armed")
+            (is (seq (v/sentexes-matching kb '(cycl_constant (Quote dog)) 'CxBaseKB))
+                "and the quoted membership is believed"))))))
+  (testing "a raw #$Quote with no quotedIsa STILL arms the gate — Quote is always quoting"
+    ;; #$Quote renames to the reserved Quote functor and passes through, so a Quote term
+    ;; can exist with no quotedIsa in the corpus.  The preamble must ride with the functor,
+    ;; or the mention would be stored un-opaque and fold on an identity merge.
+    (with-dump-file
+      (str/join "\n"
+                ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$believes #$Tom (#$Quote #$Bar)) #$BaseKB :monotonic :forward)"])
+      (fn [dump ^File dir]
+        (let [out (io/file dir "corpus")]
+          (cyc/convert! dump (str out) {})
+          (tu/with-cleared-kb [kb tu/fresh]
+            (core-context/load-into kb)
+            (cyc/load-dir! kb (str out) {:chain? true})
+            (is (seq (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+                "a Quote term with no quotedIsa still declares the functor quoting"))))))
+  (testing "a corpus with NO Quote at all omits the preamble, leaving the opacity gate off"
+    (with-dump-file
+      (str/join "\n"
+                ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$genls #$Dog #$Mammal) #$BaseKB :monotonic :forward)"])
+      (fn [dump ^File dir]
+        (let [out (io/file dir "corpus")]
+          (cyc/convert! dump (str out) {})
+          (tu/with-cleared-kb [kb tu/fresh]
+            (core-context/load-into kb)
+            (cyc/load-dir! kb (str out) {:chain? true})
+            (is (empty? (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+                "no Quote -> no quote preamble -> the engine pays nothing")))))))
+
 (deftest mints-a-context-for-a-computed-microtheory
   (let [text "(ke-assert '(#$genls #$Magic #$SacredPractice) (#$MtOfBeliefSystemFn #$Wicca) :monotonic :forward)"
         assertions (read-formulas text)
@@ -476,7 +525,7 @@
 
 ;;; ── what the load order costs ─────────────────────────────────────────
 ;;
-;; `argIsa` is open-world about an argument with no type at all and closed about one
+;; `arg` is open-world about an argument with no type at all and closed about one
 ;; that has any: an argument the KB knows *a* type for, but not the required one, is a
 ;; violation.  That makes a bulk load order-sensitive in what it keeps — a relational
 ;; fact checked before its argument's other memberships have arrived is refused on a
@@ -537,7 +586,7 @@
   ;; so a membership mentioning a NAT that is loaded before those declarations mints a
   ;; term with no types and no place in the hierarchy — and nothing revisits it.  The
   ;; corpus has half a million memberships whose argument is a NAT, so this is the rule
-  ;; and not the corner.  `resultIsa` / `resultGenl` are therefore schema, like `argIsa`:
+  ;; and not the corner.  `resultIsa` / `resultGenl` are therefore schema, like `arg`:
   ;; a declaration the engine reads while storing something else.
   (with-dump-file
     (str/join

@@ -49,7 +49,7 @@
     transitive closure and everything else reads that closure back, so interleaved, each
     fact pays for a closure the next edge is about to retire.
 
-  * memberships before facts is a **correctness** argument.  `argIsa` is open-world
+  * memberships before facts is a **correctness** argument.  `arg` is open-world
     about an argument with no type at all and closed about one that has any, so a fact
     checked before its arguments' memberships have arrived is refused on a partial
     answer — and the same corpus in a different order would keep a different set of
@@ -291,10 +291,10 @@
   transitive relations, the disjointness and argument constraints, the predicate
   metadata, and a function's result declarations.  Every one of them **changes a cached
   closure, or is a declaration the engine reads while storing something else** — an
-  `argIsa` when a fact is checked, a `resultIsa` when a NAT is reified.  A declaration
+  `arg` when a fact is checked, a `resultIsa` when a NAT is reified.  A declaration
   that arrives after the content it governs does not apply to it retroactively, so its
   layer is not a cost decision."
-  '#{genl genlCx disjoint disjointMetatype argIsa argGenl
+  '#{genl genlCx disjoint disjointMetatype arg genlArg
      transitive symmetric reflexive asymmetric functional inverse
      decontextualizedPredicate forcedDecontextualizedPredicate
      reifiableFunction unreifiableFunction resultIsa resultGenl})
@@ -335,7 +335,7 @@
 
 (defn type-membership?
   "A positive unary application — `(dog Rover)`, `(binaryPredicate ownerOf)` — which is
-  how vaelii states a type membership, and so is what every `argIsa` / `argGenl` /
+  how vaelii states a type membership, and so is what every `arg` / `genlArg` /
   disjointness check on an *ordinary* fact reads back.
 
   Structural rather than a functor list, because the corpus's types are the corpus's:
@@ -385,7 +385,7 @@
   the chain means deferring it to the end of this call, not to a later session.
 
   `:bulk? true` runs the engine's bulk-load mode (`vaelii.core/*bulk-load?*`), which
-  skips the per-fact definitional checks — the dominant cost is the live `(argIsa pred ?n
+  skips the per-fact definitional checks — the dominant cost is the live `(arg pred ?n
   ?type)` query every fact pays — and the dedup probe.  It stores what a checked load
   would have **refused**, so it is for a corpus a checked load has already reported on,
   not for a first look.

@@ -56,8 +56,8 @@
          (is (not-any? #(= 'type (first %)) ss)
              "no `(type Rover Dog)` — a type is the predicate"))
        (testing "domain and range are positional argument constraints"
-         (is (contains? ss '(argIsa hasPart 1 animal)))
-         (is (contains? ss '(argIsa hasPart 2 limb))))
+         (is (contains? ss '(arg hasPart 1 animal)))
+         (is (contains? ss '(arg hasPart 2 limb))))
        (testing "subproperty is the same genl closure as subclass"
          (is (contains? ss '(genl hasParent hasAncestor))))
        (testing "disjointness and the property metatypes"
