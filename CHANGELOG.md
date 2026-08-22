@@ -16,6 +16,28 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.11.0] — 2026-08-22
+
+**Nothing here reaches a reader, and the number moves anyway.** The engine and this
+plugin release in lockstep — one version string across the pair, checked at the cut — so
+an engine minor carries the plugin's number with it whether or not this repo earned one.
+No reader map, no `load-dir!` signature and no `:format` line moves, the translation
+targets are the ones 0.10.0 established, and a corpus converted by 0.10.0 opens
+unchanged. There is nothing to migrate.
+
+**The engine pin follows the tree it is built against**, which is where the release lands
+for a caller: this artifact now depends on engine 0.11.0, so a project naming only this
+one gets it. That release is a correctness minor carrying ten Breaking entries, and the
+ones a converted corpus can actually meet are refusals rather than renames — `query` and
+the debugger doors now reject an option they do not read (`:unknown-option`) where a
+misspelling used to answer facts-only in silence; a contradiction solve that did not
+finish refuses with `:solver-failed` instead of reading as defeat-everything; an
+infeasible program reports no labeling in every mode rather than one optimum over a world
+violating every constraint. The new vocabulary it enforces — `antiTransitive`,
+`siblingDisjoint`, the `defn*` family — is emitted by no reader here, so a corpus this
+repo converts cannot trip the new convictions. Read its changelog before upgrading; none
+of it is this repo's to migrate, and all of it is underneath you.
+
 ## [0.10.0] — 2026-08-20
 
 **This one reaches a reader: the converter learns the engine's mention vocabulary and
@@ -273,6 +295,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.11.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.7.0...v0.8.0
