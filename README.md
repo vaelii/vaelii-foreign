@@ -34,16 +34,16 @@ through any of their `load-dir!`s, and vaelii's catalog opens one without being 
 made it. The four ontology readers are [docs/ontologies.md](docs/ontologies.md); OpenCyc
 is a larger job and has its own account.
 
-The reader for vaelii's own legacy record dialect (`:engine-dump`) plugs into the same
-seam from `vaelii-legacy-import`, unreleased — a manifest merges with every other copy on
+The reader for vaelii's own older record dialect (`:engine-dump`) plugs into the same
+seam from an unreleased bridge of its own — a manifest merges with every other copy on
 the classpath, so a private bridge composes with this one without either knowing about the
 other.
 
 ## Using it
 
 Add the dependency, and the engine finds the readers — Leiningen
-`[com.vaelii/vaelii-foreign "0.11.0"]`, or deps.edn
-`com.vaelii/vaelii-foreign {:mvn/version "0.11.0"}` — from
+`[com.vaelii/vaelii-foreign "0.12.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.12.0"}` — from
 [Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
 the version it was cut with, so a project naming only this one gets both.
 

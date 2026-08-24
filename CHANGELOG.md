@@ -16,6 +16,33 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.12.0] — 2026-08-23
+
+**A corpus converted before this release states two predicates the engine no longer
+reads.** 0.12.0 spells the two output-type declarations `result` and `genlResult`, where
+every release before it spelled them `resultIsa` and `resultGenl` — named for what they
+say rather than for the check that reads them, as `arg` already is. Cyc's `#$resultIsa`
+and `#$resultGenl` were reaching the KB through the default translation branch, which
+renames a constant and keeps its spelling, so what a converted corpus carried was the
+engine's own old vocabulary. Under 0.12.0 those two sentences are inert: an unknown
+binary predicate stores open-world and convicts nothing, so a NART minted from that
+corpus gets no result types and no place in the `genl` hierarchy, and nothing reports
+the absence. Two translation arms now emit the new spellings, beside `argIsa` /
+`argGenl`, and the `Quote` vocabulary block and the corpus layer sets take them too.
+
+*Migration:* **reconvert** any corpus whose dump states `resultIsa` or `resultGenl`. The
+`:format` line has not moved and the directory still opens, so this is not a corpus the
+reader refuses — it is a corpus missing types nothing will tell you are missing. A
+corpus from a dump that states neither is unaffected.
+
+**The engine pin follows the tree it is built against:** this artifact now depends on
+engine 0.12.0. That release renames `resultIsa` / `resultGenl` as above, retires
+`character_string` in favour of `string`, types a literal argument by its EDN kind
+(`arg` refuses `(P "Bob")` where the position is declared `dog`), and makes an unnamed
+context the joint reading rather than the union. None of the four is emitted or relied
+on by a reader here beyond the rename this repo just answered for; read the engine's
+changelog before upgrading.
+
 ## [0.11.0] — 2026-08-22
 
 **Nothing here reaches a reader, and the number moves anyway.** The engine and this

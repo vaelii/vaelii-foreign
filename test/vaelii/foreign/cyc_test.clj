@@ -582,11 +582,12 @@
                     "and no later membership brings it back — a refusal is not revisited")))))))))
 
 (deftest a-reified-nat-gets-its-result-types-however-late-they-are-stated
-  ;; A NART materializes its `resultIsa` types and `resultGenl` edges **at mint time**,
+  ;; A NART materializes its `result` types and `genlResult` edges **at mint time**,
   ;; so a membership mentioning a NAT that is loaded before those declarations mints a
   ;; term with no types and no place in the hierarchy — and nothing revisits it.  The
   ;; corpus has half a million memberships whose argument is a NAT, so this is the rule
-  ;; and not the corner.  `resultIsa` / `resultGenl` are therefore schema, like `arg`:
+  ;; and not the corner.  Cyc's `resultIsa` / `resultGenl` are therefore schema, like
+  ;; `arg`:
   ;; a declaration the engine reads while storing something else.
   (with-dump-file
     (str/join

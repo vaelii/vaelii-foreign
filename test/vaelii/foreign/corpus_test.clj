@@ -157,7 +157,7 @@
     ;; compound no later declaration goes back for
     (is (= :terms (corpus/layer-of '(termOfUnit city_in_country_fn_canada (CityInCountryFn Canada)))))
     (is (= :terms (corpus/layer-of '(reifiableFunction CityInCountryFn))))
-    (is (= :terms (corpus/layer-of '(resultIsa FruitFn fruit))))))
+    (is (= :terms (corpus/layer-of '(result FruitFn fruit))))))
 
 (deftest a-drop-reason-is-worth-nothing-without-what-kind-of-drop-it-is
   ;; The four are not degrees of the same thing: `:restated` and `:filtered` cost the

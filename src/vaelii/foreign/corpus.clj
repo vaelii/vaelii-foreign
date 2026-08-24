@@ -291,13 +291,13 @@
   transitive relations, the disjointness and argument constraints, the predicate
   metadata, and a function's result declarations.  Every one of them **changes a cached
   closure, or is a declaration the engine reads while storing something else** — an
-  `arg` when a fact is checked, a `resultIsa` when a NAT is reified.  A declaration
+  `arg` when a fact is checked, a `result` when a NAT is reified.  A declaration
   that arrives after the content it governs does not apply to it retroactively, so its
   layer is not a cost decision."
   '#{genl genlCx disjoint disjointMetatype arg genlArg
      transitive symmetric reflexive asymmetric functional inverse
      decontextualizedPredicate forcedDecontextualizedPredicate
-     reifiableFunction unreifiableFunction resultIsa resultGenl})
+     reifiableFunction unreifiableFunction result genlResult})
 
 (defn schema?
   "Does `sentence` define the vocabulary rather than state a fact in it?"
@@ -312,7 +312,7 @@
   reifies at all, which constant already names an expression, and what a freshly minted
   constant is an instance of.  Every one is read *while storing something else*, and
   none applies retroactively."
-  '#{reifiableFunction unreifiableFunction termOfUnit resultIsa resultGenl})
+  '#{reifiableFunction unreifiableFunction termOfUnit result genlResult})
 
 (defn term-definition?
   "Does `sentence` define a non-atomic term rather than use one?

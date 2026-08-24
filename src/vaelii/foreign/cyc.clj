@@ -185,7 +185,7 @@
   rides with the functor — present wherever `Quote` is, and nowhere else."
   '[(reifiableFunction Quote)
     (quotingFunction Quote)
-    (resultIsa Quote cycl_expression)
+    (result Quote cycl_expression)
     (genl cycl_denotational_term          cycl_expression)
     (genl cycl_reifiable_denotational_term cycl_denotational_term)
     (genl cycl_closed_denotational_term   cycl_denotational_term)
@@ -572,6 +572,11 @@
                            (list 'arg (term (arg 1)) (arg 2) (term (arg 3))))
       "cyc/argGenl"      (when (integer? (arg 2))
                            (list 'genlArg (term (arg 1)) (arg 2) (term (arg 3))))
+      ;; A function's output type. The engine spells the two `result` and `genlResult`
+      ;; — named for what they say rather than for the check that reads them, as `arg`
+      ;; is — so they translate here rather than renaming through the default branch.
+      "cyc/resultIsa"    (when binary? (list 'result (term (arg 1)) (term (arg 2))))
+      "cyc/resultGenl"   (when binary? (list 'genlResult (term (arg 1)) (term (arg 2))))
       ;; `(argQuotedIsa P n C)` types argument n **as a term** — vaelii's `quotedArg`, with
       ;; the Cyc quoted-type collection mapped to a syntactic type where it has one.
       "cyc/argQuotedIsa" (when (integer? (arg 2))

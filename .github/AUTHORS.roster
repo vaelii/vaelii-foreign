@@ -43,10 +43,15 @@
 # who certifies the result. What may not appear in `author`, `Signed-off-by:` or
 # a co-author trailer is a tool, bot or agent as the named party.
 
+# Nobody is admitted here ahead of a contribution. An account earns a line when
+# it opens a pull request against THIS repo and a maintainer admits it, which is
+# one commit on `develop` before the merge — so the roster records who has worked
+# on this repo rather than a copy of who has worked on another. A contributor
+# admitted on the engine is not admitted here, and does not need to be until they
+# send something here.
+
 vaelii-admin  289251560+vaelii-admin@users.noreply.github.com   # maintainer
 
 # GitHub itself, as the committer of a merge or squash made through the web UI.
 # It is never an author and never carries a trailer.
 web-flow      noreply@github.com                                # github.com merge button
-
-paceheart     ubiquity@gmail.com                                # admitted on the engine 2026-08-02

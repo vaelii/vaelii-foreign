@@ -7,8 +7,8 @@
 ;;
 ;; Adding a format is one line here plus a `reader` var; the engine needs no change.
 ;; Merging is also why a private bridge can ship its own manifest under this same name
-;; without either artifact knowing about the other — `vaelii-legacy-import` declares
-;; `:engine-dump` that way, and a build that has both reads the union.
+;; without either artifact knowing about the other — the unreleased `:engine-dump` reader
+;; declares itself that way, and a build that has both reads the union.
 {:cyc-corpus     vaelii.foreign.cyc/reader
  :rdf-graph      vaelii.foreign.rdf/reader
  :wordnet-corpus vaelii.foreign.wordnet/reader

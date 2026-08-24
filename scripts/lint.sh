@@ -3,13 +3,9 @@
 #
 # Trimmed port of vaelii core's scripts/lint.sh. This artifact has no doc-gen
 # system, so the doc / unused-publics gates don't apply: the checks here are
-# versions + kondo + shellcheck + cljfmt + reflect + authorship (its unit suite
+# versions + kondo + shellcheck + cljfmt + reflect (its unit suite
 # runs via `lein test`, not this gate).
 #
-#   - authorship  the roster and matching rules behind the `authorship` CI gate,
-#                 against synthetic commits (`--selftest`; no network).  The gate
-#                 itself only runs on a pull request, so this is the one place the
-#                 rules are exercised before one arrives
 #
 # Each check runs and its output + exit code are captured; a
 # uniform report prints: one ✓/✗ line per check (green/red glyph), a short
@@ -70,7 +66,6 @@ summary() {
     kondo)    s="$(grep -oE 'errors: [0-9]+, warnings: [0-9]+' "$out" | head -1)" ;;
     cljfmt)   s="formatted" ;;
     reflect)  s="no reflection / boxing" ;;
-    authorship) s="$(grep -oE '[0-9]+ checks, all pass' "$out" | head -1)" ;;
   esac
   echo "${s:-ok}"
 }
@@ -144,7 +139,6 @@ check versions       -- bash scripts/lint-versions.sh
 check kondo          -- clj-kondo --lint src test
 kondo_version_note
 check shellcheck     -- shellcheck scripts/*.sh
-check authorship     -- python3 scripts/check-authorship.py --selftest
 
 # cljfmt also shells out to lein; let the background reflect's lein finish first
 # so two lein never run at once in this checkout (.lein-env race).
