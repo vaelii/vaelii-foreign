@@ -100,9 +100,11 @@
 
   The file is a copyright string, the constant count, then `\"Name\" id` a line at a
   time.  Read as text rather than as Lisp: a name is a quoted string and an id an
-  integer, and nothing else appears."
+  integer, and nothing else appears.  Latin-1, the encoding the dump's CFASL strings
+  carry by construction — so a name with a high byte reads back the same characters
+  from both tables instead of decoding to U+FFFD here."
   [dir]
-  (with-open [r (io/reader (io/file dir "constant-shell.text"))]
+  (with-open [r (io/reader (io/file dir "constant-shell.text") :encoding "ISO-8859-1")]
     (into {}
           (keep (fn [line]
                   (let [m (re-matches #"\s*\"((?:[^\"\\]|\\.)*)\"\s+(\d+)\s*" line)]

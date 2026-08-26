@@ -164,18 +164,30 @@
 
 ;; A genuine cycle, not an ordering problem: a payload is made of whole CFASL objects in
 ;; turn — a bignum's chunks, a float's significand, a list's members, a string's length —
-;; so everything that reads part of an object calls `read-object`, which calls them back.
-;; Reordering cannot break it.
-(declare read-object)
+;; so everything that reads part of an object calls `read-object*`, which calls them
+;; back.  Reordering cannot break it.
+(declare read-object*)
+
+;; The lexers beside this one each carry a nesting bound with a stack argument
+;; (`turtle`, `rdfxml`, `cycl`), and the argument is stronger here: overflowing the
+;; stack is an `Error`, so no `catch Exception` around a parse turns it into a refusal
+;; — and a corrupt file of `13 129` repeated nests one frame per two bytes.  Real dump
+;; objects are shallow; hundreds deep is corruption, not knowledge.
+(def ^:private ^:const max-nesting 512)
 
 (defn- read-element
-  "One object that is part of another — a list's member, a string's length, a handle's id.
+  "One object that is part of another — a list's member, a string's length, a handle's
+  id — at nesting `depth`.
 
-  `read-object` answers `::eof` when the stream ends, because between objects an ending
+  `read-object*` answers `::eof` when the stream ends, because between objects an ending
   is the file's own.  Inside one it is truncation, and saying so here is what keeps a
-  count larger than the file from reading as that many endings."
-  [^InputStream in resolvers]
-  (let [o (read-object in resolvers)]
+  count larger than the file from reading as that many endings.  Nesting past
+  `max-nesting` is refused for the reason the constant gives."
+  [^InputStream in resolvers ^long depth]
+  (when (> depth max-nesting)
+    (throw (ex-info (str "CFASL object nests deeper than " max-nesting)
+                    {:type :cfasl/too-deep :limit max-nesting})))
+  (let [o (read-object* in resolvers depth)]
     (if (= ::eof o)
       (throw (ex-info "CFASL stream ended inside an object" {:type :cfasl/truncated}))
       o)))
@@ -189,8 +201,8 @@
   allocation, a loop or an index no input can satisfy.  Refusing here is what makes that
   a named error rather than a `NegativeArraySizeException`, a silently empty list, or a
   heap the reader does not come back from."
-  ^long [^InputStream in resolvers]
-  (let [n (read-element in resolvers)]
+  ^long [^InputStream in resolvers ^long depth]
+  (let [n (read-element in resolvers depth)]
     (if (and (integer? n) (not (neg? n)) (<= n Long/MAX_VALUE))
       (long n)
       (throw (ex-info (str "CFASL object is not a count: " (pr-str n))
@@ -198,24 +210,35 @@
 
 (defn- read-bignum
   "A bignum: a chunk count, then that many 8-bit chunks as objects, least-significant
-  first.  `sign` is 1 or -1 — the two opcodes differ in nothing else."
-  [^InputStream in resolvers ^long sign]
-  (let [n (read-natural in resolvers)]
+  first.  `sign` is 1 or -1 — the two opcodes differ in nothing else.  A chunk that is
+  not an integer is refused the way a bad count is: whichever way it were read, the
+  stream is desynchronized junk from there."
+  [^InputStream in resolvers ^long sign ^long depth]
+  (let [n (read-natural in resolvers depth)]
     (loop [i 0, acc (biginteger 0)]
       (if (= i n)
         (* sign (bigint acc))
-        (recur (inc i)
-               (.or ^BigInteger acc
-                    (.shiftLeft (biginteger (long (read-element in resolvers)))
-                                (* 8 i))))))))
+        (let [c (read-element in resolvers depth)]
+          (if (integer? c)
+            (recur (inc i)
+                   (.or ^BigInteger acc
+                        (.shiftLeft (biginteger (long c)) (* 8 i))))
+            (throw (ex-info (str "CFASL bignum chunk is not an integer: " (pr-str c))
+                            {:type :cfasl/bad-number :chunk c}))))))))
 
 (defn- read-float
   "A float: a significand and a base-2 exponent, each a whole object — which is why the
   significand routinely arrives as a bignum, and why a wrong bignum reading shows up
-  first as an absurd float.  `sign` is 1.0 or -1.0."
-  ^double [^InputStream in resolvers ^double sign]
-  (let [significand (read-element in resolvers)
-        exponent    (read-element in resolvers)]
+  first as an absurd float.  `sign` is 1.0 or -1.0.  A part that is not a number is
+  refused by name rather than left to a cast."
+  ^double [^InputStream in resolvers ^double sign ^long depth]
+  (let [significand (read-element in resolvers depth)
+        exponent    (read-element in resolvers depth)]
+    (when-not (and (number? significand) (number? exponent))
+      (throw (ex-info (str "CFASL float parts are not numbers: " (pr-str significand)
+                           " " (pr-str exponent))
+                      {:type :cfasl/bad-number
+                       :significand significand :exponent exponent})))
     (* sign (double significand) (Math/pow 2.0 (double exponent)))))
 
 (defn read-object
@@ -223,108 +246,115 @@
 
   Returns `::eof` when the stream is exhausted **between** objects — the only place an
   ending is legal.  A dump file is read by calling this until it says so, and everything
-  inside an object goes through `read-element`, for which an ending is truncation."
+  inside an object goes through `read-element`, for which an ending is truncation and
+  nesting past `max-nesting` a refusal."
   [^InputStream in resolvers]
+  (read-object* in resolvers 0))
+
+(defn- read-object*
+  "`read-object` at nesting `depth` — 0 at the top, one more per object inside one."
+  [^InputStream in resolvers ^long depth]
   (let [op (.read in)]
     (cond
       (neg? op) ::eof
       (>= op immediate-fixnum-offset) (- op immediate-fixnum-offset)
       :else
-      (case op
-        0 (read-uint in 1)
-        1 (- (read-uint in 1))
-        2 (read-uint in 2)
-        3 (- (read-uint in 2))
-        4 (read-uint in 3)
-        5 (- (read-uint in 3))
-        6 (read-uint in 4)
-        7 (- (read-uint in 4))
+      (let [d (inc depth)]
+        (case op
+          0 (read-uint in 1)
+          1 (- (read-uint in 1))
+          2 (read-uint in 2)
+          3 (- (read-uint in 2))
+          4 (read-uint in 3)
+          5 (- (read-uint in 3))
+          6 (read-uint in 4)
+          7 (- (read-uint in 4))
 
-        8 (read-float in resolvers 1.0)
-        9 (read-float in resolvers -1.0)
+          8 (read-float in resolvers 1.0 d)
+          9 (read-float in resolvers -1.0 d)
 
-        ;; The name arrives as a string object, and upstream strips a leading colon
-        ;; before interning — a keyword may be written either way.
-        10 (let [s (str (read-element in resolvers))]
-             (keyword (if (.startsWith s ":") (subs s 1) s)))
+          ;; The name arrives as a string object, and upstream strips a leading colon
+          ;; before interning — a keyword may be written either way.
+          10 (let [s (str (read-element in resolvers d))]
+               (keyword (if (.startsWith s ":") (subs s 1) s)))
 
-        ;; A bare SubL symbol is executable code, never knowledge, and the `subl`
-        ;; namespace is how the translation tells it from a KB constant. A string means
-        ;; the CYC package; anything else is an explicit package followed by the name.
-        11 (let [head (read-element in resolvers)]
-             (if (string? head)
-               (symbol "subl" head)
-               (symbol "subl" (str (read-element in resolvers)))))
+          ;; A bare SubL symbol is executable code, never knowledge, and the `subl`
+          ;; namespace is how the translation tells it from a KB constant. A string means
+          ;; the CYC package; anything else is an explicit package followed by the name.
+          11 (let [head (read-element in resolvers d)]
+               (if (string? head)
+                 (symbol "subl" head)
+                 (symbol "subl" (str (read-element in resolvers d)))))
 
-        12 nil
+          12 nil
 
-        ;; A count and then that many objects.  The count is the file's own claim about
-        ;; itself, so it is read as a count (`read-natural`) rather than trusted: a
-        ;; negative one would otherwise read as the empty list and leave the stream
-        ;; standing in the middle of an object with nothing said about it.
-        13 (let [n (read-natural in resolvers)]
-             (apply list (repeatedly n #(read-element in resolvers))))
+          ;; A count and then that many objects.  The count is the file's own claim about
+          ;; itself, so it is read as a count (`read-natural`) rather than trusted: a
+          ;; negative one would otherwise read as the empty list and leave the stream
+          ;; standing in the middle of an object with nothing said about it.
+          13 (let [n (read-natural in resolvers d)]
+               (apply list (repeatedly n #(read-element in resolvers d))))
 
-        14 (let [n (read-natural in resolvers)]
-             (vec (repeatedly n #(read-element in resolvers))))
+          14 (let [n (read-natural in resolvers d)]
+               (vec (repeatedly n #(read-element in resolvers d))))
 
-        ;; Raw bytes, one char each — a wide string has its own opcode, so this is
-        ;; Latin-1 by construction rather than by assumption.
-        15 (String. ^bytes (read-raw-bytes in (read-natural in resolvers)) "ISO-8859-1")
+          ;; Raw bytes, one char each — a wide string has its own opcode, so this is
+          ;; Latin-1 by construction rather than by assumption.
+          15 (String. ^bytes (read-raw-bytes in (read-natural in resolvers d)) "ISO-8859-1")
 
-        16 (char (raw-byte in))
+          16 (char (raw-byte in))
 
-        ;; `length` cars and then one tail object. Clojure has no improper list, so it
-        ;; reads back as a marker whose head is not a constant — which is exactly what
-        ;; the translation drops. None appears in a formula.
-        17 (let [n    (read-natural in resolvers)
-                 cars (doall (repeatedly n #(read-element in resolvers)))
-                 tail (read-element in resolvers)]
-             (list :cfasl/dotted (apply list cars) tail))
+          ;; `length` cars and then one tail object. Clojure has no improper list, so it
+          ;; reads back as a marker whose head is not a constant — which is exactly what
+          ;; the translation drops. None appears in a formula.
+          17 (let [n    (read-natural in resolvers d)
+                   cars (doall (repeatedly n #(read-element in resolvers d)))
+                   tail (read-element in resolvers d)]
+               (list :cfasl/dotted (apply list cars) tail))
 
-        18 (unsupported op)
+          18 (unsupported op)
 
-        ;; A count, then that many 8-bit chunks least-significant first — and each chunk
-        ;; is a whole CFASL *object*, not a raw byte. That distinction is the one place
-        ;; where guessing costs more than a wrong number: a chunk of 128 or more is
-        ;; written as an opcode plus a byte, so reading chunks raw consumes one byte
-        ;; where the writer wrote two and desynchronizes the rest of the file.
-        ;; `cfasl-output-integer` writes them with `cfasl-output`, over the chunks
-        ;; `disassemble-integer-to-fixnums` makes by shifting down 8 bits at a time.
-        23 (read-bignum in resolvers 1)
-        24 (read-bignum in resolvers -1)
+          ;; A count, then that many 8-bit chunks least-significant first — and each chunk
+          ;; is a whole CFASL *object*, not a raw byte. That distinction is the one place
+          ;; where guessing costs more than a wrong number: a chunk of 128 or more is
+          ;; written as an opcode plus a byte, so reading chunks raw consumes one byte
+          ;; where the writer wrote two and desynchronizes the rest of the file.
+          ;; `cfasl-output-integer` writes them with `cfasl-output`, over the chunks
+          ;; `disassemble-integer-to-fixnums` makes by shifting down 8 bits at a time.
+          23 (read-bignum in resolvers 1 d)
+          24 (read-bignum in resolvers -1 d)
 
-        (25 43) (str (read-element in resolvers))
+          (25 43) (str (read-element in resolvers d))
 
-        26 (vec (read-raw-bytes in (read-natural in resolvers)))
+          26 (vec (read-raw-bytes in (read-natural in resolvers d)))
 
-        (27 28 29 44 51 90 91 94 95 124 126) (unsupported op)
+          (27 28 29 44 51 90 91 94 95 124 126) (unsupported op)
 
-        30 (resolve-handle resolvers :constant (read-natural in resolvers))
-        31 (resolve-handle resolvers :nart (read-natural in resolvers))
+          30 (resolve-handle resolvers :constant (read-natural in resolvers d))
+          31 (resolve-handle resolvers :nart (read-natural in resolvers d))
 
-        ;; The complete forms carry the id and then the name, and the name is redundant
-        ;; against the dump's own constant table — upstream reads and discards it too.
-        32 (let [c (resolve-handle resolvers :constant (read-natural in resolvers))]
-             (read-element in resolvers)
-             c)
+          ;; The complete forms carry the id and then the name, and the name is redundant
+          ;; against the dump's own constant table — upstream reads and discards it too.
+          32 (let [c (resolve-handle resolvers :constant (read-natural in resolvers d))]
+               (read-element in resolvers d)
+               c)
 
-        33 (resolve-handle resolvers :assertion (read-natural in resolvers))
-        36 (resolve-handle resolvers :deduction (read-natural in resolvers))
-        37 (resolve-handle resolvers :kb-hl-support (read-natural in resolvers))
-        38 (resolve-handle resolvers :clause-struc (read-natural in resolvers))
+          33 (resolve-handle resolvers :assertion (read-natural in resolvers d))
+          36 (resolve-handle resolvers :deduction (read-natural in resolvers d))
+          37 (resolve-handle resolvers :kb-hl-support (read-natural in resolvers d))
+          38 (resolve-handle resolvers :clause-struc (read-natural in resolvers d))
 
-        40 (hl-variable (read-natural in resolvers))
-        42 (let [v (hl-variable (read-natural in resolvers))]
-             (read-element in resolvers)
-             v)
+          40 (hl-variable (read-natural in resolvers d))
+          42 (let [v (hl-variable (read-natural in resolvers d))]
+               (read-element in resolvers d)
+               v)
 
-        ;; An index into a symbol table the *server* installs at runtime
-        ;; (`cfasl-set-common-symbols`); a dump on disk carries no such table, so the
-        ;; index is all there is and it reads back as a marker.
-        50 (list :cfasl/common-symbol (read-element in resolvers))
+          ;; An index into a symbol table the *server* installs at runtime
+          ;; (`cfasl-set-common-symbols`); a dump on disk carries no such table, so the
+          ;; index is all there is and it reads back as a marker.
+          50 (list :cfasl/common-symbol (read-element in resolvers d))
 
-        (unsupported op)))))
+          (unsupported op))))))
 
 (defn objects
   "A lazy seq of every object in `in`, to end of stream.

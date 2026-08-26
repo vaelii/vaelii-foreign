@@ -207,6 +207,20 @@
   (let [parts (str/split (str/trim s) #"\s+")]
     (when (= 2 (count parts)) parts)))
 
+(defn- property-value-parts
+  "A `property_value:` value as `[relation value]` — two words (`part_of TT:2`), or a
+  relation and a quoted literal with an optional trailing XSD type
+  (`IAO:0000116 \"text\" xsd:string`); nil when it is neither."
+  [^String s]
+  (or (two-word s)
+      (let [t (str/trim s)
+            i (str/index-of t " ")]
+        (when i
+          (let [r (subs t 0 i)
+                v (str/triml (subs t (inc i)))]
+            (when (str/starts-with? v "\"")
+              [r v]))))))
+
 (defn- relations-used
   "The relation ids a stanza *references*, whether or not the file declares them.
 
@@ -219,7 +233,7 @@
   [stanza]
   (concat (keep #(first (two-word %)) (tags stanza "relationship"))
           (keep #(first (two-word %)) (tags stanza "intersection_of"))
-          (keep #(first (two-word %)) (tags stanza "property_value"))
+          (keep #(first (property-value-parts %)) (tags stanza "property_value"))
           (mapcat #(or (two-word %) ()) (tags stanza "holds_over_chain"))
           (tags stanza "transitive_over")
           (tags stanza "disjoint_over")
@@ -291,6 +305,16 @@
   {"name" 'label "def" 'comment "comment" 'comment "synonym" 'synonym
    "xref" 'xref "alt_id" 'altId "subset" 'subset "replaced_by" 'replacedBy
    "consider" 'consider "created_by" 'createdBy "creation_date" 'creationDate})
+
+(def ^:private handled-tags
+  "Every tag `translate` reads, routes on (`id`, `namespace`), or reads in pass 1
+  (`is_obsolete`).  A tag outside this set is knowledge this reader does not carry,
+  and the report says so — one `:unread-<tag>` count per value, which `drop-kinds`
+  reads as `:unread` — rather than a silent skip."
+  (into #{"id" "namespace" "is_a" "disjoint_from" "union_of" "intersection_of"
+          "relationship" "property_value" "instance_of" "inverse_of" "domain" "range"
+          "holds_over_chain" "transitive_over" "is_functional" "is_obsolete"}
+        (concat (keys relation-flags) (keys annotation-tags))))
 
 (defn translate
   "The sentences one stanza becomes: `{:context C :sentences [[strength sentence] …]
@@ -377,16 +401,23 @@
       ;; ---- what an Instance declares --------------------------------------
       (when (= "Instance" (:type stanza))
         (doseq [i (tags stanza "instance_of")]
-          (if-let [x (t i)] (fact (list x self)) (drop! :unknown-instance-type)))
-        (doseq [pv (tags stanza "property_value")]
-          (if-let [[r value] (two-word pv)]
-            (if-let [x (t r)]
-              ;; the value is a term id when the ontology declares one, and a literal
-              ;; otherwise — `property_value: part_of TT:2` and `property_value: shown_in
-              ;; "a figure"` are both legal and mean different things
-              (fact (list x self (or (t value) (quoted-value value) (unescape value))))
-              (drop! :unknown-property))
-            (drop! :malformed-property-value))))
+          (if-let [x (t i)] (fact (list x self)) (drop! :unknown-instance-type))))
+
+      ;; ---- property values ------------------------------------------------
+      ;; legal on every stanza kind, not just `[Instance]` — a `[Term]` carries its
+      ;; definition sources and taxon constraints this way, a `[Typedef]` its editor
+      ;; notes, and the Relations Ontology states most of its property values outside
+      ;; any Instance stanza
+      (doseq [pv (tags stanza "property_value")]
+        (if-let [[r value] (property-value-parts pv)]
+          (if-let [x (t r)]
+            ;; the value is a term id when the ontology declares one, and a literal
+            ;; otherwise — `property_value: part_of TT:2` and `property_value: shown_in
+            ;; "a figure"` are both legal and mean different things; a quoted literal's
+            ;; trailing XSD type is not kept
+            (fact (list x self (or (t value) (quoted-value value) (unescape value))))
+            (drop! :unknown-property))
+          (drop! :malformed-property-value)))
 
       ;; ---- annotations ----------------------------------------------------
       ;; `def:` and `synonym:` carry their text in a `"…"` head followed by a bracketed
@@ -396,7 +427,13 @@
               value (tags stanza tg)
               :let [text (or (quoted-value value) (unescape value))]
               :when (not (str/blank? text))]
-        (fact (list pred self text))))
+        (fact (list pred self text)))
+
+      ;; ---- what was not read ----------------------------------------------
+      (doseq [[tg vs] (:tags stanza)
+              :when (not (contains? handled-tags tg))
+              _ vs]
+        (drop! (keyword (str "unread-" tg)))))
     {:context ctx :sentences @out :drops @drops}))
 
 ;;; ── converting ────────────────────────────────────────────────────────
@@ -421,8 +458,9 @@
   919 of its 2,820 stanzas, so a clean conversion of it reads as a third broken until
   the kind says otherwise.  `:existential-intersect` is a **weakening**: the fact is
   written and only the biconditional is lost, so `uo.obo` reports 81 drops of 574
-  stanzas while losing nothing at all.  What is left is `:unread` and every one of those
-  is a name the ontology uses and never declares."
+  stanzas while losing nothing at all.  What is left is `:unread`: a name the ontology
+  uses and never declares, or an `:unread-<tag>` count for a tag this reader does not
+  read."
   '{:obsolete              :filtered
     :existential-intersect :weakened})
 

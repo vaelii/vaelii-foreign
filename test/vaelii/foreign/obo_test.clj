@@ -152,3 +152,37 @@
        (is (empty? (v/sentexes-matching kb '(label cell_division "cell division")
                                         'CxBiologicalProcess))
            "the labels are what :taxonomy is for dropping")))))
+
+;;; ── property values, everywhere they are legal ────────────────────────
+
+(deftest a-property-value-is-read-outside-an-instance-stanza
+  ;; `property_value:` is legal on every stanza kind — a [Term] states its taxon
+  ;; constraints and definition sources this way, and the Relations Ontology states
+  ;; most of its property values on [Typedef]s.  Reading it only inside [Instance]
+  ;; would silently drop them, uncounted.
+  (converted
+   (fn [dir _]
+     (let [ss (set (tu/corpus-sentences dir))]
+       (is (contains? ss '(hasPart mitotic_cell_cycle young_thing))
+           "a property_value on a [Term] resolves like any other")))))
+
+(deftest a-property-value-with-a-quoted-literal-and-a-type-is-read
+  ;; `property_value: has_part "a note" xsd:string` is the three-token form — a
+  ;; relation, a quoted literal, and a trailing XSD datatype.  The literal is kept,
+  ;; the datatype is not, and the whole line is not `:malformed`.
+  (converted
+   (fn [dir report]
+     (is (contains? (set (tu/corpus-sentences dir))
+                    '(hasPart TheObservedDivision "a note"))
+         "the quoted value survives and the xsd type is dropped")
+     (is (nil? (get-in report [:drop-reasons :malformed-property-value]))
+         "the three-token form is not malformed"))))
+
+(deftest a-tag-the-reader-does-not-read-is-counted-not-skipped
+  ;; A tag outside what `translate` reads is knowledge this reader does not carry, and
+  ;; the report says so — one `:unread-<tag>` per value — rather than a silent skip
+  ;; that reads downstream as "nothing was lost".
+  (converted
+   (fn [_ report]
+     (is (= 1 (get-in report [:drop-reasons :unread-is_class_level]))
+         "an unhandled Typedef flag is named in the drop reasons"))))

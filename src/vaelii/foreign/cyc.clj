@@ -673,9 +673,13 @@
           ;; the context topology is its own file: every context has to exist before
           ;; the sentences whose checks read it
           (= 'cyc/genlMt head)
-          (if-let [s (rewrite-literal names formula)]
-            (ok [s] :topology)
-            {:dropped :untranslatable})
+          ;; held to a fact's groundness like everything below the connectives: a
+          ;; topology edge with a variable in it names no context
+          (cond
+            (not (ground? formula)) {:dropped :non-ground}
+            :else (if-let [s (rewrite-literal names formula)]
+                    (ok [s] :topology)
+                    {:dropped :untranslatable}))
 
           ;; a rule.  `:code` names a rule Cyc implements in SubL rather than states,
           ;; so there is nothing to translate.
@@ -747,6 +751,9 @@
           (let [c  (arg 2)
                 ct (term c)]
             (cond
+              ;; held to a fact's groundness first: `(isa ?X Dog)` would otherwise
+              ;; write a non-ground membership the load refuses one report later
+              (not (ground? formula)) {:dropped :non-ground}
               ;; being a microtheory is carried by the context topology instead
               (= 'cyc/Microtheory c) {:dropped :context-declaration}
               (not (symbol? ct))     {:dropped :unnameable-type}

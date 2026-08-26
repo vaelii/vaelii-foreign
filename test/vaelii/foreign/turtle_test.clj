@@ -147,3 +147,14 @@
     (is (instance? clojure.lang.LazySeq ts))
     (is (= 1 (count (take 1 ts))))
     (is (thrown? clojure.lang.ExceptionInfo (dorun ts)))))
+
+(deftest recovery-skips-over-a-single-quoted-literal
+  ;; `skip-to-dot!` steps over both quote kinds: a `.` inside a single-quoted literal
+  ;; is part of the literal, not the statement's end.  With the malformed token before
+  ;; the literal, recovery walks past `'x. y'` to the real terminating `.` rather than
+  ;; stopping at the dot inside it and splitting the tail into spurious triples.
+  (let [ts (read-all (str "@prefix ex: <http://example.org/> .\n"
+                          "ex:a nosuch:b 'x. y' .\n"       ; malformed: undeclared prefix, then a '…' with a dot
+                          "ex:good ex:p ex:q .\n"))]
+    (is (= [{:s (e "good") :p (e "p") :o (e "q")}] ts)
+        "the dot inside the single-quoted literal did not end recovery early")))

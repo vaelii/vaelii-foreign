@@ -657,7 +657,9 @@
       (cond
         (neg? c)        nil
         (= \. (char c)) nil
+        ;; both quote kinds: a `.` inside `'a. b'` ends the literal, not the statement
         (= \" (char c)) (do (read-quoted! r c) (recur))
+        (= \' (char c)) (do (read-quoted! r c) (recur))
         (= \< (char c)) (do (read-iri-ref! r) (recur))
         :else           (recur)))))
 
@@ -722,7 +724,9 @@
                 (let [before (count @(:out st))
                       ok     (read-predicate-object-list! st s nil 0)]
                   (if-not ok
-                    (do (vswap! (:out st) subvec 0 before)   ; a half-read statement states nothing
+                    ;; back to `mark`, not `before`: a bracketed *subject* emits triples
+                    ;; too, and a half-read statement states nothing — including them
+                    (do (vswap! (:out st) subvec 0 mark)
                         (malformed! st r "a statement with no readable predicate-object list"))
                     (do
                       (skip-ws! r)

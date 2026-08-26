@@ -511,14 +511,18 @@
          ;; element is legal too — the tests call that rdf-element-not-mandatory — so the
          ;; root is consumed as a wrapper only when it is rdf:RDF, and parsed as content
          ;; otherwise.  `more?` is what tells the pump which case it is in.
-         [base more?]
+         [base lang more?]
          (if (= :start (skip-to-tag! r))
            (let [x (attrs r)
                  [b l] (scope x (:base opts) nil)]
              (if (= (element-uri r) (str rdf "RDF"))
-               [b true]
-               (do (node-element! st r b l 0) [b false])))
-           [(:base opts) false])
+               ;; the wrapper's own `xml:base` *and* `xml:lang` scope the whole
+               ;; document — an ontology header's `xml:lang` tags every plain
+               ;; literal below it, and dropping it would hand the language
+               ;; filter untagged literals in a tagged document
+               [b l true]
+               (do (node-element! st r b l 0) [b l false])))
+           [(:base opts) nil false])
          more? (volatile! more?)]
      ((fn step []
         (lazy-seq
@@ -529,7 +533,7 @@
                (cons t (step)))
              (when @more?
                (case (skip-to-tag! r)
-                 :start (do (node-element! st r base nil 0) (recur))
+                 :start (do (node-element! st r base lang 0) (recur))
                  (do (vreset! more? false) nil)))))))))))
 
 (defn with-triples

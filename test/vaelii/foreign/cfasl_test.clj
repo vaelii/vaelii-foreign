@@ -211,3 +211,25 @@
   (is (every? keyword? (vals cfasl/opcodes)))
   (is (every? #(<= 0 % 127) (keys cfasl/opcodes))
       "128 and up are immediate fixnums, so no opcode may live there"))
+
+(deftest a-deeply-nested-object-is-refused-not-a-stack-overflow
+  ;; Nothing frames a CFASL object but its own opcode, so a corrupt file of one-element
+  ;; lists (`0x0D 0x81` repeated) nests one frame per two bytes.  Overflowing the stack
+  ;; is an `Error` no `catch Exception` around a parse turns into a refusal, so the
+  ;; reader bounds its own nesting and refuses past it by name.
+  (let [deep (vec (concat (mapcat (fn [_] [0x0D 0x81]) (range 4000)) [0x0C]))]
+    (is (= :cfasl/too-deep
+           (try (read1 deep) ::read
+                (catch clojure.lang.ExceptionInfo e (:type (ex-data e)))))
+        "a thousands-deep nest is refused, not a StackOverflowError")))
+
+(deftest a-mistyped-number-payload-is-a-named-refusal
+  ;; a bignum chunk or a float part that decodes to something that is not a number is
+  ;; a desynchronized stream — refused by name, the way a bad length is, rather than a
+  ;; ClassCastException out of a cast.
+  (letfn [(kind [bs] (try (read1 bs) ::read
+                          (catch clojure.lang.ExceptionInfo e (:type (ex-data e)))))]
+    ;; 0x17 bignum: chunk-count 1, then a `nil` (0x0C) where an integer chunk belongs
+    (is (= :cfasl/bad-number (kind [0x17 0x81 0x0C])) "bignum chunk")
+    ;; 0x08 float: a `nil` significand
+    (is (= :cfasl/bad-number (kind [0x08 0x0C 0x81])) "float significand")))

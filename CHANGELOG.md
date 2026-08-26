@@ -16,6 +16,44 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.13.0] — 2026-08-25
+
+**A corpus converted before this release loses property values the Foundry states
+outside `[Instance]` stanzas.** The OBO reader read `property_value:` only inside an
+`[Instance]`, and only in its two-word form — so a `[Term]`'s taxon constraints and
+definition sources and a `[Typedef]`'s editor notes were dropped, *uncounted*, and the
+three-token `property_value: R "text" xsd:string` form read as malformed. It is now read
+on every stanza kind and in both forms, the trailing XSD datatype discarded. A tag the
+reader does not read at all is counted `:unread-<tag>` rather than skipped silently, so
+`report.edn` names what a conversion leaves behind tag by tag. *Reconvert* any OBO corpus
+whose source states property values or unread tags; the `:format` line has not moved.
+
+**RDF/XML dropped an `xml:lang` on the `rdf:RDF` root**, so an ontology header's
+document-level language tag was lost and every plain literal below it read as untagged —
+which the language filter keeps under any `--languages`. The root's `xml:lang` now scopes
+the whole document, as its `xml:base` already did. *Reconvert* an RDF/XML corpus whose
+root element carried `xml:lang`.
+
+**A top-level Cyc `(isa ?X C)` or `(genlMt ?X ?Y)` wrote a non-ground fact** the load then
+refused — moving the loss from the conversion report, where the reader's honesty contract
+puts it, to the load. Both are now held to a fact's groundness at conversion and dropped
+`:non-ground`.
+
+- **Turtle recovery steps over single-quoted literals**, so a `.` inside `'a. b'` no
+  longer ends a malformed statement early and splits it into spurious triples; and a
+  refused statement with a bracketed (blank-node) subject rolls back the subject's
+  triples too, rather than leaving them behind.
+- **The CFASL reader bounds its own nesting** (`:cfasl/too-deep`) — a corrupt file of
+  nested one-element lists is a refusal, not a `StackOverflowError` no `catch` around the
+  parse can reach — and a bignum chunk or float part that is not a number is a named
+  `:cfasl/bad-number` rather than a `ClassCastException`.
+- **`constant-shell.text` is read Latin-1**, the encoding the dump's CFASL strings carry,
+  so a constant name with a high byte no longer decodes to U+FFFD and get silently
+  renamed.
+- **A corpus loads streamed, one form at a time.** `load-dir!` walks each context file
+  once per layer without realizing it whole, so the largest file of a million-assertion
+  corpus no longer sits in the heap five times over.
+
 ## [0.12.0] — 2026-08-23
 
 **A corpus converted before this release states two predicates the engine no longer
@@ -322,6 +360,8 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.13.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.12.0...v0.13.0
+[0.12.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.8.0...v0.9.0

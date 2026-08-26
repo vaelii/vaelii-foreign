@@ -17,6 +17,7 @@ namespace: biological_process
 def: "The cell cycle of a eukaryotic cell." [TT:curator]
 is_a: TT:0000001 ! cellular process
 relationship: part_of TT:0000003
+property_value: has_part TT:0000006
 synonym: "mitosis" EXACT []
 xref: Wikipedia:Mitosis
 
@@ -66,9 +67,11 @@ name: has part
 id: occurs_in
 name: occurs in
 holds_over_chain: part_of occurs_in
+is_class_level: true
 
 [Instance]
 id: TT:9000001
 name: the observed division
 instance_of: TT:0000003
 property_value: part_of TT:0000002
+property_value: has_part "a note" xsd:string

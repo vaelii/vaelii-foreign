@@ -42,8 +42,8 @@ other.
 ## Using it
 
 Add the dependency, and the engine finds the readers — Leiningen
-`[com.vaelii/vaelii-foreign "0.12.0"]`, or deps.edn
-`com.vaelii/vaelii-foreign {:mvn/version "0.12.0"}` — from
+`[com.vaelii/vaelii-foreign "0.13.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.13.0"}` — from
 [Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
 the version it was cut with, so a project naming only this one gets both.
 
@@ -83,7 +83,7 @@ question: `:restated` and `:filtered` cost the corpus nothing, `:weakened` costs
 claim its strength, and only **`:unread`** is content the reader could not carry. That
 is the number `report.edn` puts on its own line, and it is small: converting OpenCyc 4.0
 lost 643 of its 1,889,842 assertions and its OWL export 1,784 of 2,281,726 triples, and
-the OBO ontologies the suite converts lose nothing. The two OpenCyc figures come from one
+what the OBO ontologies the suite converts lose is named tag by tag in `report.edn`. The two OpenCyc figures come from one
 run against a distribution this repo does not ship, not from anything it checks.
 
 A **`:filtered` drop is one you can overrule**: `--obsolete`, `--editorial`,

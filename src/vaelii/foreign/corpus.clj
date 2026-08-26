@@ -276,15 +276,27 @@
 
 ;;; ── loading ───────────────────────────────────────────────────────────
 
-(defn read-file-sentences
-  "Every sentence in KB file `f`, read with `clojure.edn` — the corpus is data and can
-  never run code, exactly as a `resources/kb` file cannot."
-  [^File f]
-  (with-open [r (PushbackReader. (io/reader f))]
+(defn stream-file-sentences
+  "Call `(f sentence)` on every sentence in KB file `file`, one form at a time — read
+  with `clojure.edn` (the corpus is data and can never run code, exactly as a
+  `resources/kb` file cannot), and never realized whole, so the largest context file
+  of a million-assertion corpus costs one form of heap however often it is walked."
+  [^File file f]
+  (with-open [r (PushbackReader. (io/reader file))]
     (let [eof (Object.)]
-      (loop [acc []]
+      (loop []
         (let [form (edn/read {:eof eof} r)]
-          (if (identical? form eof) acc (recur (conj acc form))))))))
+          (when-not (identical? form eof)
+            (f form)
+            (recur)))))))
+
+(defn read-file-sentences
+  "Every sentence in KB file `f`, as a vector — `stream-file-sentences` collected, for
+  a caller that wants a whole (small) file."
+  [^File f]
+  (let [acc (volatile! (transient []))]
+    (stream-file-sentences f #(vswap! acc conj! %))
+    (persistent! @acc)))
 
 (def schema-functors
   "The sentences that define the vocabulary rather than state a fact in it: the two
@@ -452,9 +464,13 @@
                                       (= :monotonic strength) (assoc :strength :monotonic)))
          keep?      (fn [s] (not (and (seq? s) (contains? drop-pred (first s)))))
          load-file! (fn [^File f ctx strength want]
-                      (run! #(assert1! % ctx (assert-opts strength))
-                            (filter #(and (keep? %) (= want (layer-of %)))
-                                    (read-file-sentences f))))
+                      ;; streamed, not realized: the file is walked once per layer, and
+                      ;; holding it whole per walk would put the largest context file
+                      ;; in the heap five times over
+                      (stream-file-sentences
+                       f (fn [s]
+                           (when (and (keep? s) (= want (layer-of s)))
+                             (assert1! s ctx (assert-opts strength))))))
          files     (vec (for [ctx (:context-order meta)
                               :when (and (not (drop-ctx ctx)) (or (nil? keep-ctx) (keep-ctx ctx)))
                               [suffix strength] [["" :default] [".monotonic" :monotonic]]
