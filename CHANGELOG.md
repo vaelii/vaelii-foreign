@@ -16,6 +16,22 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.14.0] — 2026-08-29
+
+No reader-facing change, no corpus-format change, and nothing here a caller can observe.
+The version moves in lockstep with the engine, whose 0.14.0 carries one Breaking entry and
+one Refusal — the mapped index named `:disk-snapshot` instead of reached through a system
+property, and a ceiling on distinct `(predicate, position)` pairs — neither of which
+reaches a reader here: this artifact translates formats and calls `assert`, and both touch
+how the engine scopes and stores its own index.
+
+The lockstep is this release's whole reason rather than a convention: a released engine
+tree names `com.vaelii/vaelii-foreign` at its **own** version in the `+with-foreign`
+profile, so that version has to exist for the profile to resolve. Publishing it beside the
+engine is what keeps `lein with-profile +with-foreign` working on the day the engine ships.
+
+What the range holds is the version bump itself.
+
 ## [0.13.0] — 2026-08-25
 
 **A corpus converted before this release loses property values the Foundry states
@@ -360,6 +376,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.14.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.10.0...v0.11.0
