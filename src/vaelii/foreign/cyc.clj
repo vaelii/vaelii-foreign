@@ -136,8 +136,8 @@
     ;; the two halves of vaelii's NAT declaration (vaelii.impl.nat), which Cyc
     ;; states as metatype membership and vaelii reads off a predicate: without it a
     ;; non-atomic term is never reified, and Cyc's KB is full of them
-    cyc/ReifiableFunction reifiableFunction
-    cyc/UnreifiableFunction unreifiableFunction})
+    cyc/ReifiableFunction reifiable_function
+    cyc/UnreifiableFunction unreifiable_function})
 
 (def functional-metatypes
   "Cyc metatypes that map to vaelii's `functional`, behind `:functional?`."
@@ -178,13 +178,13 @@
   appear — whether from a `quotedIsa` or a raw `#$Quote` in the dump (`convert!`'s
   `quotes?`): `Quote` as a **reifiable quoting function** — a reified `(Quote X)` mentions
   `X` as syntax and is held opaque to an identity merge of its referent (vaelii
-  `quotingFunction`) — landing every quoted term in the `cycl_expression` tree, plus that
+  `quoting_function`) — landing every quoted term in the `cycl_expression` tree, plus that
   syntactic-type hierarchy.  `Quote` reuses the engine's NAT machinery, so a quoted term
-  needs no new engine support to reify and type.  `(quotingFunction Quote)` here is what
+  needs no new engine support to reify and type.  `(quoting_function Quote)` here is what
   arms the engine's mention-opacity walk; since `Quote` is definitionally quoting, this
   rides with the functor — present wherever `Quote` is, and nowhere else."
-  '[(reifiableFunction Quote)
-    (quotingFunction Quote)
+  '[(reifiable_function Quote)
+    (quoting_function Quote)
     (result Quote cycl_expression)
     (genl cycl_denotational_term          cycl_expression)
     (genl cycl_reifiable_denotational_term cycl_denotational_term)
@@ -691,7 +691,7 @@
               {:dropped :untranslatable-rule}))
 
           ;; a negative unit clause.  vaelii stores `(not S)` as a first-class sentex —
-          ;; the record's own `:truth`, not a wrapper — so this is the same fact with
+          ;; the record's own `:polarity`, not a wrapper — so this is the same fact with
           ;; the other polarity, and dropping it would lose a claim we can hold.
           (= 'cyc/not head)
           (let [[polarity inner] (clause-literal formula)]
@@ -822,7 +822,7 @@
            role-map (roles (dissoc evidence :nat-context :nat-type))
            names    (name-table role-map (:nat-context evidence) (:nat-type evidence))
            ;; `Quote` is *definitionally* a quoting function, so its preamble — including
-           ;; `(quotingFunction Quote)`, which arms the engine's mention-opacity walk —
+           ;; `(quoting_function Quote)`, which arms the engine's mention-opacity walk —
            ;; must be present whenever a `Quote` term is, and absent otherwise (the engine's
            ;; zero-cost-until-declared contract).  Two things put a `Quote` in the output:
            ;; the `quotedIsa` arm emits one, and a raw `#$Quote` in the dump renames to it

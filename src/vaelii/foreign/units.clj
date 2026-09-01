@@ -80,7 +80,13 @@
   [:true-mon :true-def :unknown :false-def :false-mon])
 
 (defn decode-flags
-  "The `{:gaf? :direction :truth :strength}` an assertion's flags integer states."
+  "The `{:gaf? :direction :truth :strength}` an assertion's flags integer states.
+
+  `:truth` here is **Cyc's** truth value and is three-valued — `:true` / `:false` /
+  `:unknown` — so it is not vaelii's `:polarity`, which is two-valued and is a slot on
+  the record.  Nothing writes this to a slot: `assertion` consumes a `:false` into a
+  `cyc/not` wrapper, and vaelii's canonicalization derives the record's polarity from
+  that wrapper."
   [^long flags]
   (let [tv (get truth-values (bit-and (bit-shift-right flags 3) 7))]
     {:gaf?      (bit-test flags 0)
@@ -339,7 +345,7 @@
   formula has no reading.
 
   Cyc's own monotonic-vs-default marking comes across as vaelii's assumption strength,
-  and a false truth value as the `not` the record's own `:truth` will carry."
+  and a false truth value as the `not` the record's own `:polarity` will carry."
   [[_id [formula-data mt flags _arguments plist]] narts clause-strucs]
   (let [{:keys [gaf? direction truth strength]} (decode-flags (long flags))
         base    (formula-of gaf? formula-data clause-strucs truth)

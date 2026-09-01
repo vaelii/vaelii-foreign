@@ -55,8 +55,8 @@
   ;; the fixed vocabulary a quotedIsa corpus rides on: Quote reifiable + quoting, and the
   ;; cycl_* hierarchy the mapped collections live in.
   (let [vocab (set cyc/quote-vocabulary)]
-    (is (contains? vocab '(reifiableFunction Quote)))
-    (is (contains? vocab '(quotingFunction Quote)))
+    (is (contains? vocab '(reifiable_function Quote)))
+    (is (contains? vocab '(quoting_function Quote)))
     (is (contains? vocab '(result Quote cycl_expression)))
     (is (contains? vocab '(genl cycl_constant cycl_reifiable_denotational_term)))
     (is (= 'cycl_constant (cyc/cycl-collection-names 'cyc/CycLConstant)))))

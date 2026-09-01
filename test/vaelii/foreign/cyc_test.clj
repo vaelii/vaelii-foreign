@@ -177,7 +177,7 @@
 
     (testing "a metadata metatype is a declaration as well as a membership"
       (is (contains? all '(symmetric siblingOf)))
-      (is (contains? all '(reifiableFunction GroupFn))
+      (is (contains? all '(reifiable_function GroupFn))
           "Cyc states the NAT declaration as metatype membership; vaelii reads a predicate"))
 
     (testing "a comment keeps its string"
@@ -375,7 +375,7 @@
                   "the Horn disjunction fired as the rule it is"))))))))
 
 (deftest the-quote-preamble-is-emitted-only-for-a-quoting-corpus
-  ;; `(quotingFunction Quote)` arms the engine's mention-opacity walk, so a corpus that
+  ;; `(quoting_function Quote)` arms the engine's mention-opacity walk, so a corpus that
   ;; never mentions a term (no `quotedIsa`) must not carry it — the engine's
   ;; zero-cost-until-declared contract.  A quoting corpus does declare it.
   (testing "a corpus WITH quotedIsa declares the quote machinery and the mention lands"
@@ -389,7 +389,7 @@
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (seq (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+            (is (seq (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
                 "the opacity gate is armed")
             (is (seq (v/sentexes-matching kb '(cycl_constant (Quote dog)) 'CxBaseKB))
                 "and the quoted membership is believed"))))))
@@ -407,7 +407,7 @@
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (seq (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+            (is (seq (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
                 "a Quote term with no quotedIsa still declares the functor quoting"))))))
   (testing "a corpus with NO Quote at all omits the preamble, leaving the opacity gate off"
     (with-dump-file
@@ -420,7 +420,7 @@
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (empty? (v/sentexes-matching kb '(quotingFunction Quote) 'CxBaseKB))
+            (is (empty? (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
                 "no Quote -> no quote preamble -> the engine pays nothing")))))))
 
 (deftest mints-a-context-for-a-computed-microtheory

@@ -262,7 +262,7 @@ tying it to the term the same collection is called elsewhere.
 | `(arg1Isa P C)`, `(argIsa P 2 C)` | `(argIsa p 1 c)`, `(argIsa p 2 c)` | the `argN*` family folds into one positional form |
 | `(comment X "…")` | `(comment x "…")` | |
 | `(isa P TransitiveBinaryPredicate)` | `(transitive p)` **and** `(transitive_binary_predicate p)` | metadata as well as membership |
-| `(isa F ReifiableFunction)` | `(reifiableFunction F)` | vaelii's NAT declaration |
+| `(isa F ReifiableFunction)` | `(reifiable_function F)` | vaelii's NAT declaration |
 | `(implies A C)` + `:forward` + `:default` | `(set/forwardRule (set/defaultRule (implies A' C')))` | direction and defeasibility are wrappers |
 | `:monotonic` / `:default` | `{:strength :monotonic}` / the default | Cyc's own defeasibility marking is vaelii's assumption strength |
 | anything else | the same fact under its renamed predicate | stored, indexed, queryable — uninterpreted |
@@ -426,11 +426,11 @@ The load is layered — **term definitions, hierarchy, the rest of the schema, t
 memberships, then the remaining facts** — the same layering the shipped ontology uses,
 and each step is read by the one after it.
 
-Term definitions are an **identity** argument. `(reifiableFunction F)` and `(termOfUnit
+Term definitions are an **identity** argument. `(reifiable_function F)` and `(termOfUnit
 K E)` decide which constant a non-atomic term reifies to, and Cyc's KB is full of them:
 a sentence mentioning `(F a)` structurally is reified against those declarations as they
 stand at that moment. Arriving late, a `termOfUnit` mints a second constant for an
-expression that already has one, and a `reifiableFunction` misses the reification
+expression that already has one, and a `reifiable_function` misses the reification
 altogether — the NAT was stored as a compound and no later declaration goes back for it.
 13,966 of the corpus's type names are computed collections defined this way, and the
 phase took 11s.

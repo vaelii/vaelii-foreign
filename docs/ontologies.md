@@ -358,7 +358,7 @@ All three ontologies `scripts/fetch-suites.sh` caches convert with nothing unrea
 | `uo.obo` | 574 | 2,241 | 80 existential-intersect, 1 obsolete | 0 |
 
 `uo.obo`'s 80 are the `intersection_of: has:prefix UO:…` lines: each writes its
-`(hasPrefix …)` fact and loses only the "and nothing else" half of the definition.
+`(has_prefix …)` fact and loses only the "and nothing else" half of the definition.
 Those rows are what `lein convert convert obo .cache/obo/<name>.obo <dir>` writes into
 `report.edn`, so re-running it is the check. Any `:unknown-` reason above zero is what
 to read before the corpus is loaded: each one is a fact the source stated and the corpus

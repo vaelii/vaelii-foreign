@@ -39,7 +39,7 @@
   whole corpus five times — term definitions, hierarchy, the rest of the schema, type
   memberships, then everything else — and the reason is not speed:
 
-  * term definitions first is an **identity** argument.  `(reifiableFunction F)` and
+  * term definitions first is an **identity** argument.  `(reifiable_function F)` and
     `(termOfUnit K E)` decide which constant a non-atomic term reifies to, and every
     later sentence mentioning that term is reified against them as they stand then.
     Arriving late, they mint a second constant for an expression that already has one —
@@ -306,10 +306,10 @@
   `arg` when a fact is checked, a `result` when a NAT is reified.  A declaration
   that arrives after the content it governs does not apply to it retroactively, so its
   layer is not a cost decision."
-  '#{genl genlCx disjoint disjointMetatype arg genlArg
+  '#{genl genlCx disjoint disjoint_metatype arg genlArg
      transitive symmetric reflexive asymmetric functional inverse
-     decontextualizedPredicate forcedDecontextualizedPredicate
-     reifiableFunction unreifiableFunction result genlResult})
+     decontextualized_predicate forced_decontextualized_predicate
+     reifiable_function unreifiable_function result genlResult})
 
 (defn schema?
   "Does `sentence` define the vocabulary rather than state a fact in it?"
@@ -324,7 +324,7 @@
   reifies at all, which constant already names an expression, and what a freshly minted
   constant is an instance of.  Every one is read *while storing something else*, and
   none applies retroactively."
-  '#{reifiableFunction unreifiableFunction termOfUnit result genlResult})
+  '#{reifiable_function unreifiable_function termOfUnit result genlResult})
 
 (defn term-definition?
   "Does `sentence` define a non-atomic term rather than use one?
@@ -334,7 +334,7 @@
   that moment.  Arriving first, a `(termOfUnit K (F a))` is adopted; arriving after, it
   mints a second constant for an expression that already has one — same corpus, two
   terms, and a collision to reconcile, for no reason but file order.  A
-  `reifiableFunction` that arrives late is worse still: the NAT was stored as a compound
+  `reifiable_function` that arrives late is worse still: the NAT was stored as a compound
   and no later declaration goes back for it."
   [sentence]
   (and (seq? sentence) (contains? term-functors (first sentence))))
@@ -346,7 +346,7 @@
   (and (seq? sentence) (contains? '#{genl genlCx} (first sentence))))
 
 (defn type-membership?
-  "A positive unary application — `(dog Rover)`, `(binaryPredicate ownerOf)` — which is
+  "A positive unary application — `(dog Rover)`, `(binary_predicate ownerOf)` — which is
   how vaelii states a type membership, and so is what every `arg` / `genlArg` /
   disjointness check on an *ordinary* fact reads back.
 

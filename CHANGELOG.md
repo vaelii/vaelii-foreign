@@ -16,6 +16,35 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.15.0] — 2026-09-01
+
+**The vocabulary this repo emits is respelled: a unary predicate is snake_case.** The
+engine's naming rule is now a biconditional — snake_case ⇔ arity 1 — so a camelCase
+functor at arity 1 is refused at `assert`, and the readers here emitted several:
+`unaryPredicate`, `reifiableFunction`, `unreifiableFunction`, `quotingFunction`,
+`instanceRelationPredicate`, `antiTransitive`, `siblingDisjoint` and the rest of the
+declaration vocabulary the OpenCyc translation writes. Every one is now `unary_predicate`,
+`reifiable_function`, `anti_transitive` and so on. A one-place predicate is a kind or a
+property rather than a relation between terms, and the engine's spelling now says so in
+both directions. *Class:* **Breaking** for a corpus this repo wrote under an earlier
+version — the declarations in it carry the old spellings, and re-asserting one throws
+`:naming`. *Migration:* re-run the conversion, or rewrite the corpus by lower-casing each
+interior capital of any functor standing at arity 1 (`nm/snake-case` in the engine is the
+same transform). A corpus you cannot re-run opens under `{:naming :warn}` or
+`{:naming :off}`, and the bulk load path never consulted the door at all.
+
+*Breaks:* every camelCase unary predicate the readers emit
+
+**`decode-flags`'s `:truth` is Cyc's, and the docstring says so.** The engine renamed the
+sentex map's `:truth` slot to `:polarity`, with `:positive` / `:negative` values, and the
+mechanical follow here would have been wrong: Cyc's truth value is three-valued —
+`:true` / `:false` / `:unknown` — and an `:unknown` has no polarity. The two were never
+the same field, and nothing here writes a slot: `assertion` consumes a `:false` into a
+`cyc/not` wrapper, and the engine's canonicalization derives the record's polarity from
+that wrapper. What changed is that this is now written down, beside the two comments that
+did refer to the engine's slot and now spell it `:polarity`. *Class:* **Fix** — a
+documentation fix; no reader, corpus or caller moves.
+
 ## [0.14.0] — 2026-08-29
 
 No reader-facing change, no corpus-format change, and nothing here a caller can observe.
@@ -376,6 +405,7 @@ Everything below is the initial contents rather than a change from anything.
   form and are counted, not carried.
 - WordNet sense numbers are not preserved; `wnOffset` is the identifier to join on.
 
+[0.15.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/vaelii/vaelii-foreign/compare/v0.11.0...v0.12.0
