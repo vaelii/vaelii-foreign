@@ -919,7 +919,8 @@
   ([kb dir opts] (corpus/load-dir! kb dir profiles opts)))
 
 (def reader
-  "This format's reader, as the seam (`vaelii.impl.foreign`) hands it out — declared by
+  "This format's reader, as the extension point (`vaelii.impl.foreign`) hands it out —
+  declared by
   `resources/vaelii/foreign.edn`, and the whole surface a caller reaches through it."
   {:name       "OpenCyc corpus"
    :load-dir!  load-dir!

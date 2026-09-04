@@ -4,7 +4,7 @@ Notable changes to `vaelii-foreign`, newest first. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-**What counts as a breaking change here** is worth stating, because this artifact has
+**What counts as a breaking change here** is stated here, because this artifact has
 two surfaces and only one of them is code. A reader map's keys and a `load-dir!`
 signature are the ordinary kind. The other is the **corpus format** — a directory some
 earlier version wrote and a later one has to keep opening. A change that makes an
@@ -15,6 +15,29 @@ Translation changes are called out separately from both. A conversion that now k
 something it used to drop does not break anything, but it does mean a corpus converted
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
+
+## [0.16.0] — 2026-09-04
+
+**The prose here is reworded to say what the code does.** Comments, docstrings, doc pages,
+changelog entries and test names now state the mechanism in literal technical language,
+and `scripts/check-prose.py` — the engine's check, adapted to this tree's layout — runs as
+the `prose` row in `scripts/lint.sh` with a `lein lint-prose` alias. The two metaphors
+this repo carried are replaced by what each one named: the plugin extension point for the
+reader registry, and the microtheory ancestor set for Cyc's lookup closure. The evaluative
+phrasings become statements of what the code does, and four pseudo-cleft sentences lead
+with their subject. The renamed `deftest` is
+`the-extension-point-discovers-every-declared-format`, and `plugin_test`'s local binding
+is `via-point`. *Class:* **Fix** — a `deftest` name and a test-local binding, both private
+to the suite. No reader map key, `load-dir!` signature or corpus `:format` moves, and a
+corpus written under 0.15.0 opens unchanged. *Migration:* none.
+
+**The number.** Requires core 0.16.0, which carries three **Breaking** entries and one
+**Refusal**: a `:missing-adapter` refusal split out of `:unknown-backend`, a CLI operand
+count moved from `:unknown-option` to `:bad-args`, `different` no longer provable against
+an unpinned `indeterminate_term`, and a rule concluding an indeterminacy from a
+`different` antecedent refused as `:not-stratified`. None of the four reaches this repo:
+nothing here selects an adapter backend, parses a command line, asks a difference or
+stores a rule.
 
 ## [0.15.0] — 2026-09-01
 
@@ -31,7 +54,7 @@ version — the declarations in it carry the old spellings, and re-asserting one
 `:naming`. *Migration:* re-run the conversion, or rewrite the corpus by lower-casing each
 interior capital of any functor standing at arity 1 (`nm/snake-case` in the engine is the
 same transform). A corpus you cannot re-run opens under `{:naming :warn}` or
-`{:naming :off}`, and the bulk load path never consulted the door at all.
+`{:naming :off}`, and the bulk load path never consulted the entry point at all.
 
 *Breaks:* every camelCase unary predicate the readers emit
 
@@ -59,7 +82,7 @@ tree names `com.vaelii/vaelii-foreign` at its **own** version in the `+with-fore
 profile, so that version has to exist for the profile to resolve. Publishing it beside the
 engine is what keeps `lein with-profile +with-foreign` working on the day the engine ships.
 
-What the range holds is the version bump itself.
+The range holds the version bump itself.
 
 ## [0.13.0] — 2026-08-25
 
@@ -139,7 +162,7 @@ unchanged. There is nothing to migrate.
 for a caller: this artifact now depends on engine 0.11.0, so a project naming only this
 one gets it. That release is a correctness minor carrying ten Breaking entries, and the
 ones a converted corpus can actually meet are refusals rather than renames — `query` and
-the debugger doors now reject an option they do not read (`:unknown-option`) where a
+the debugger entry points now reject an option they do not read (`:unknown-option`) where a
 misspelling used to answer facts-only in silence; a contradiction solve that did not
 finish refuses with `:solver-failed` instead of reading as defeat-everything; an
 infeasible program reports no labeling in every mode rather than one optimum over a world
@@ -276,7 +299,7 @@ refusals — none of which reaches a reader here: this artifact translates forma
 lockstep is the release's whole reason rather than a convention, a released engine tree
 naming `com.vaelii/vaelii-foreign` at its own version in the `+with-foreign` profile.
 
-What the range holds is the version bump and the CI tiering — the conformance job auto-runs
+The range holds the version bump and the CI tiering — the conformance job auto-runs
 on the public repository and nowhere else, and every `uses:` is a SHA that Dependabot
 watches.
 
@@ -290,7 +313,7 @@ version has to exist for the profile to resolve. Publishing it beside the engine
 than after it is what keeps `lein with-profile +with-foreign` working on the day the
 engine ships.
 
-What the range holds is the version bump itself and a test fixture renaming the canonical
+The range holds the version bump itself and a test fixture renaming the canonical
 dog, which reaches no reader, no corpus and no shipped term.
 
 ## [0.5.0] — 2026-08-07

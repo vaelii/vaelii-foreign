@@ -27,7 +27,7 @@
 ;;; ── fixtures ──────────────────────────────────────────────────────────
 
 (def ^:private sample-dump
-  "A miniature CycL KB, in the shape a text re-dump carries: a taxonomy,
+  "A miniature CycL KB, in the form a text re-dump carries: a taxonomy,
   a microtheory topology, argument constraints, predicate metadata, a rule, and two
   assertions that carry no knowledge (a SubL hook and a bookkeeping term)."
   (str/join

@@ -8,7 +8,8 @@
   call sites actually reach for.  The manifest is walked rather than spelled out, so this
   keeps holding when a format is added — or, as with `:engine-dump`, moved to a sibling.
 
-  Nothing in this namespace requires a reader.  Everything goes through the seam, which
+  Nothing in this namespace requires a reader.  Everything goes through the extension
+  point, which
   is how the test also proves the manifest is what does the wiring — a typo in
   `resources/vaelii/foreign.edn` reads here as a format nobody shipped."
   (:require [clojure.edn :as edn]
@@ -33,13 +34,13 @@
       (is (str/starts-with? (namespace sym) "vaelii.foreign.")
           "a manifest here declares this artifact's own namespaces"))))
 
-(deftest the-seam-discovers-every-declared-format
+(deftest the-extension-point-discovers-every-declared-format
   (foreign/rescan)
   (let [found (foreign/formats)]
     (doseq [[kind sym] @manifest]
       (testing (str kind)
         (is (= sym (get found kind))
-            "the seam's scan did not pick this up from the manifest")
+            "the extension point's scan did not pick this up from the manifest")
         (is (foreign/available? kind))
         (is (map? (foreign/reader kind)))
         (is (string? (:name (foreign/reader kind))) "a reader says what it reads")))))
@@ -113,9 +114,9 @@
   ;; Two tables, two audiences — the manifest is keyed by the kind an engine call site
   ;; asks for, the CLI's registry by what a person types — and nothing but this keeps
   ;; them from drifting into naming different sets of readers.
-  (let [seam (set (map (fn [[kind _]] (foreign/reader! kind)) @manifest))
+  (let [via-point (set (map (fn [[kind _]] (foreign/reader! kind)) @manifest))
         cli  (set (map (comp :reader val) convert/formats))]
-    (is (= seam cli))))
+    (is (= via-point cli))))
 
 (deftest a-format-nobody-declares-is-still-refused
   ;; The plugin adds formats; it does not make the engine credulous about the rest.

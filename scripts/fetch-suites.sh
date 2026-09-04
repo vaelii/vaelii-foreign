@@ -6,7 +6,7 @@
 # somebody else's licence, it is large, and it moves; checking one into git
 # would make this repo a stale mirror of it. So the suites live in a gitignored
 # cache and the tests that need them skip when it is absent (see
-# `vaelii.foreign.suite`). What the repo owns is the hand-authored fixtures
+# `vaelii.foreign.suite`). The repo owns the hand-authored fixtures
 # under test/resources/ — those run offline, always.
 #
 # ONE ITEM IS FETCHED BY CI, and it is the one that can be pinned. `rdf-tests`
@@ -20,7 +20,7 @@
 # build.
 #
 # Idempotent by construction: an item whose target already exists is left
-# alone, so re-running costs nothing and a first run after checkout is the
+# alone, so re-running downloads nothing and a first run after checkout is the
 # only one that touches the network. `--force` removes the target first, and
 # with no item named it does that for every item it would otherwise skip.
 #

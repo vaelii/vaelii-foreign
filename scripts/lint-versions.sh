@@ -15,7 +15,7 @@
 #      already drifted a whole release before anything read it.
 #
 #   3. The README's install coordinate is the same string again, so it is held
-#      to the same equality rather than to a weaker rule.  It is tempting to
+#      to the same equality rather than to a weaker rule.  Do not
 #      treat it as lagging — "it should name the last *release*" — and that is
 #      the wrong model: `build-release-tree.sh` strips `-SNAPSHOT` **tree-wide**
 #      and guards that none survives, so a dev README saying `0.5.0`
@@ -45,7 +45,7 @@ FAILS=0
 # `X.Y.Z-SNAPSHOT`, or the carve has stripped every suffix and everything is
 # `X.Y.Z`.  **`develop` is deliberately not uniform.** `bump-develop.sh` rewrites
 # line 1 only, leaving each sibling coordinate at the version that shipped, and
-# the reason is load-bearing: a contributor cloning develop has to be able to
+# and the reason matters: a contributor cloning develop has to be able to
 # build it, and `X.Y.(Z+1)-SNAPSHOT` is on nobody's Clojars.  A check that demanded
 # equality there would turn the branch every pull request targets red, which is a
 # worse failure than the drift it is looking for.

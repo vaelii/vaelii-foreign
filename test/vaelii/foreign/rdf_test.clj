@@ -155,7 +155,7 @@
 
 (deftest a-non-uniform-blank-node-is-named-rather-than-misaligned
   ;; The hazard flattening has to avoid: Ann's award has no year, so positionally her
-  ;; name would land in the slot a rule reads as a year.
+  ;; name would land in the slot a rule interprets as a year.
   (n-ary
    (fn [dir report]
      (let [ss (set (tu/corpus-sentences dir))]

@@ -256,7 +256,8 @@
   "Pass 1.  Fold every triple into `{evidence-key #{iri …}}` plus `:bnodes`, the triples
   whose subject is a blank node.
 
-  The blank nodes are held in memory and the rest is streamed, which is the shape of the
+  The blank nodes are held in memory and the rest is streamed, which is the structure of
+  the
   data rather than a compromise: an OWL construct is a small closed cluster of blank
   nodes, and a graph large enough to matter (a Wikidata or YAGO dump) has none at all."
   [triples]
@@ -893,7 +894,7 @@
   ([kb dir opts] (corpus/load-dir! kb dir profiles opts)))
 
 (def reader
-  "This format's reader, as the seam (`vaelii.impl.foreign`) hands it out."
+  "This format's reader, as the extension point (`vaelii.impl.foreign`) hands it out."
   {:name       "RDF/OWL graph"
    :load-dir!  load-dir!
    :convert!   convert!

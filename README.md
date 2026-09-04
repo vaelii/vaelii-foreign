@@ -35,20 +35,20 @@ made it. The four ontology readers are [docs/ontologies.md](docs/ontologies.md);
 is a larger job and has its own account.
 
 The reader for vaelii's own older record dialect (`:engine-dump`) plugs into the same
-seam from an unreleased bridge of its own — a manifest merges with every other copy on
+extension point from an unreleased bridge of its own — a manifest merges with every other copy on
 the classpath, so a private bridge composes with this one without either knowing about the
 other.
 
 ## Using it
 
 Add the dependency, and the engine finds the readers — Leiningen
-`[com.vaelii/vaelii-foreign "0.15.0"]`, or deps.edn
-`com.vaelii/vaelii-foreign {:mvn/version "0.15.0"}` — from
+`[com.vaelii/vaelii-foreign "0.16.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.16.0"}` — from
 [Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
 the version it was cut with, so a project naming only this one gets both.
 
 Nothing to require and nothing to call. `resources/vaelii/foreign.edn` declares
-`kind -> reader var`; vaelii's seam (`vaelii.impl.foreign`) reads every copy of that
+`kind -> reader var`; vaelii's extension point (`vaelii.impl.foreign`) reads every copy of that
 resource on the classpath, merges them, and resolves a symbol only when something asks
 for that kind — so these namespaces load on demand and the engine holds no compile-time
 reference to one. With the dependency in place, the catalog's `:corpus` kind loads a

@@ -2,13 +2,13 @@
   "The corpus — the format every reader here converts *to*, and the one thing that loads
   it.
 
-  Five converters agreeing about the shape of the answer is a claim, not a coincidence,
+  Five converters agreeing about the answer's structure is a claim, not a coincidence,
   and it is worth a test of its own: a directory any of them wrote must load through any
   of their `load-dir!`s, because the loader never asks where the sentences came from.
   That is also what lets vaelii's catalog open one without being told.
 
   The layering — hierarchy, schema, memberships, facts — is asserted here as *order*;
-  that the order is load-bearing is `cyc-test/the-membership-layer-is-what-keeps-it`,
+  that the order matters is `cyc-test/the-membership-layer-is-what-keeps-it`,
   which shows the same corpus losing a fact without it."
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]

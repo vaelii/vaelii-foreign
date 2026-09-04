@@ -13,7 +13,8 @@
   is in its own `meta.edn`.
 
   Nothing here is required by the readers: this namespace depends on all five and none
-  of them depends on it, so the plugin seam still loads exactly the one namespace whose
+  of them depends on it, so the plugin extension point still loads exactly the one
+namespace whose
   format was asked for."
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
@@ -221,7 +222,8 @@
                        (str/join ", " (map name (sort (keys (:profiles reader))))))))
 
     ;; No command is a request for the usage; a wrong one is a mistake, and printing the
-    ;; usage over a zero exit is how a typo reads as a clean run to whatever called this.
+    ;; usage over a zero exit, because a typo exiting zero is indistinguishable from a
+    ;; clean run to whatever called this.
     (if (nil? cmd)
       (println (:doc (meta #'-main)))
       (die "unknown command " (pr-str cmd) " — one of "

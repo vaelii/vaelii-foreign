@@ -3,8 +3,10 @@
 #
 # Trimmed port of vaelii core's scripts/lint.sh. This artifact has no doc-gen
 # system, so the doc / unused-publics gates don't apply: the checks here are
-# versions + kondo + shellcheck + cljfmt + reflect (its unit suite
-# runs via `lein test`, not this gate).
+# versions + kondo + shellcheck + cljfmt + reflect + prose (its unit suite
+# runs via `lein test`, not this gate).  `prose` holds comments and docs to
+# literal technical language against scripts/prose-baseline.txt, the rule the
+# engine repo states in CONTRIBUTING.md §3.9.
 #
 #
 # Each check runs and its output + exit code are captured; a
@@ -66,6 +68,7 @@ summary() {
     kondo)    s="$(grep -oE 'errors: [0-9]+, warnings: [0-9]+' "$out" | head -1)" ;;
     cljfmt)   s="formatted" ;;
     reflect)  s="no reflection / boxing" ;;
+    prose)    s="$(grep -oE '[0-9]+ of [0-9]+ allowed, [0-9]+ files remaining' "$out" | head -1)" ;;
   esac
   echo "${s:-ok}"
 }
@@ -108,7 +111,7 @@ printf '%slint%s\n' "$BOLD" "$RST"
 # `lint: N/N clean` could sit against a red CI lint: a newer kondo infers more and
 # flags what an older one passes.
 #
-# A NOTE and never a failure, deliberately.  The pin moves whenever the workflow is
+# A NOTE and never a failure.  The pin moves whenever the workflow is
 # edited, and a package manager can lag it for weeks — so there are windows where no
 # `brew install` can satisfy a hard check, and refusing to run the linter then costs
 # more than the drift it would report.  Silent when the two agree, and silent when
@@ -139,6 +142,7 @@ check versions       -- bash scripts/lint-versions.sh
 check kondo          -- clj-kondo --lint src test
 kondo_version_note
 check shellcheck     -- shellcheck scripts/*.sh
+check prose          -- python3 scripts/check-prose.py
 
 # cljfmt also shells out to lein; let the background reflect's lein finish first
 # so two lein never run at once in this checkout (.lein-env race).

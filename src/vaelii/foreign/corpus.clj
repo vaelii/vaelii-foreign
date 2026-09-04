@@ -22,7 +22,7 @@
   keeps it attributable once somebody has copied it somewhere else.
 
   **One format, five converters.**  Cyc, RDF, WordNet, OBO and ATOMIC disagree about
-  everything except the shape of the answer, so the answer is where they are made to
+  everything except the answer's structure, so the answer is where they are made to
   agree: a corpus says nothing about where it came from beyond `meta.edn`'s `:format`
   line, and `load-dir!` never asks.  That is worth more than tidiness — vaelii's own
   catalog recognizes a corpus by `meta.edn` holding a `:context-order` and loads it

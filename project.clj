@@ -1,4 +1,4 @@
-(defproject com.vaelii/vaelii-foreign "0.15.0"
+(defproject com.vaelii/vaelii-foreign "0.16.0"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
                 vaelii's plugin seam."
@@ -28,7 +28,7 @@
   ;; `vaelii.impl.*`, which vaelii is free to change — that cost is the plugin's to
   ;; carry, and is the reason a bridge lives out here rather than in the engine.
   :dependencies [[org.clojure/clojure "1.12.5"]
-                 [com.vaelii/vaelii "0.15.0"]
+                 [com.vaelii/vaelii "0.16.0"]
                  ;; Arrives transitively through vaelii and is required directly by code
                  ;; here — trove carries the conversion's progress log — so naming it
                  ;; makes it a promise rather than an accident of somebody else's
@@ -63,6 +63,9 @@
             ;; *warn-on-reflection* and fails on any warning from our code.  Slowest of
             ;; the three (it compiles), so `lint` runs it last.
             "lint-reflect"    ["shell" "bash" "scripts/check-reflection.sh"]
+            ;; the prose budget: metaphor and aphorism against scripts/prose-baseline.txt.
+            ;; `lein lint-prose -- --update` lowers a stale budget; it never raises one
+            "lint-prose"      ["shell" "python3" "scripts/check-prose.py"]
             ;; the `authorship` CI gate's rules, against synthetic commits — the gate
             ;; runs only on a pull request, so this is where they are exercised first
             "lint"            ["shell" "bash" "scripts/lint.sh"]

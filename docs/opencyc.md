@@ -11,7 +11,7 @@ fixture the tests do convert (`cyc-tiny`, 717 constants) produces none of these 
 Read them as what one conversion did, not as what the next one will.
 
 The reader is a **bridge**, and lives where a bridge lives: in this artifact, reached
-through vaelii's plugin seam ([foreign.md](https://github.com/vaelii/vaelii/blob/main/docs/foreign.md)). Converting the corpus once
+through vaelii's plugin extension point ([foreign.md](https://github.com/vaelii/vaelii/blob/main/docs/foreign.md)). Converting the corpus once
 into vaelii's own dump format is what retires it, and being a separate dependency is what
 makes retiring it a matter of dropping one.
 
@@ -56,7 +56,7 @@ A CFASL stream is self-describing: one opcode byte, then that opcode's payload,
 recursively. Opcodes 0–127 are opcodes and 128–255 carry the fixnums 0–127 inline, which
 is why the commonest object in a dump costs one byte.
 
-Three things about the encoding are worth stating because getting any of them wrong
+Three things about the encoding matter because getting any of them wrong
 produces plausible data rather than an error:
 
 * **The opcode table is the server's, not the API client's.** They disagree in exactly
@@ -125,8 +125,8 @@ KB. On `units/5022` every table agreed to the record — 188,111 constants, 48,2
 
 The count is the only check that catches a desynchronized traversal, and it is a strong
 one, because a stream out of step does not stop yielding records — it stops yielding the
-right number of them. What it does not pin is the *predicate* each formula ends up under,
-so those are worth stating too. Reading the whole dump and counting formula heads
+right number of them. It does not pin the *predicate* each formula ends up under, so
+that is stated here too. Reading the whole dump and counting formula heads
 (through a `not`, since a false gaf is wrapped):
 
 | predicate | head count |
@@ -183,7 +183,7 @@ the explicit declarations alone would classify a fraction of the KB. Argument 2 
 predicate; the microtheory slot is a context; the head of a *nested* application is a
 function, while the head of a formula is a predicate.
 
-That formula/term distinction is load-bearing. `(FruitFn AppleTree)` inside a
+Everything below depends on that formula/term distinction. `(FruitFn AppleTree)` inside a
 sentence is a term whose head is a function, and reading it as a predicate
 application would spell it `fruitFn` and lose vaelii's NAT reification.
 
@@ -455,7 +455,7 @@ read, not a fact.
 
 Each layer is a filter over the same file list — no gathering, no sorting.
 
-What remains is the per-fact `(argIsa pred ?n ?type)` constraint query, which the
+The per-fact `(argIsa pred ?n ?type)` constraint query remains, and the
 engine names as the dominant per-fact cost and which `:bulk? true` skips (along with
 the other definitional checks and the dedup probe). That mode stores what a checked
 load would have refused, so it belongs after a checked load has reported, not
@@ -562,7 +562,7 @@ is not measured.
 Load **order** is what most of those numbers are about, and `:arg-genl` is the line that
 shows why: a definitional check can only fire against content already loaded, so an
 `argGenl` arriving after the facts it governs never fires at all, and a check that never
-fires is worse than no check — it reads as a clean load. The schema layer (`argIsa`,
+fires is worse than no check, because it is indistinguishable from a clean load. The schema layer (`argIsa`,
 `argGenl`, `disjointWith`, the memberships) therefore loads ahead of the facts checked
 against it, which is what makes `:arg-genl`'s 156 and `:arg-type`'s 6,578 real readings
 rather than artifacts of what had not arrived yet.
@@ -584,7 +584,7 @@ allowed to let arrival order decide. Mutual visibility is now admitted and answe
 directly ([contexts.md](https://github.com/vaelii/vaelii/blob/main/docs/contexts.md)); the contexts are not merged, since a cycle claims
 that each sees the other and not that they are one place.
 
-**A refusal that costs nothing.** The corpus carries 864 reflexive edges — 517
+**A refusal with no runtime cost.** The corpus carries 864 reflexive edges — 517
 `(genlCx X X)`, 328 `(genl X X)` (Cyc's `genls` and `genlPreds` both land there), 17
 `(rewriteOf X X)`, 2 `(disjoint X X)`. Most of them are a NART on both sides, which is
 why the figure is larger than the constant-to-constant count. The first three are refused
@@ -627,13 +627,13 @@ step.** Not that Cyc's taxonomy is per-microtheory data and ours is one blob —
 systems store each `(genl a b)` in a context, and the corpus does place each one
 where Cyc stated it (`:support` is `{[a b] {handle ctx}}`, several supporters per
 edge, each with its stating context). The difference is when the context is
-consulted. **Cyc applies the microtheory cone at lookup, so every edge of a
+consulted. **Cyc applies the microtheory ancestor set at lookup, so every edge of a
 transitive search is filtered as it is walked: a path exists in Mt M only if every
 edge on it is visible from M.** The engine now does the same
 ([taxonomy.md](https://github.com/vaelii/vaelii/blob/main/docs/taxonomy.md), "Reads are
 scoped by the asking context"): `genls` / `specs` / `genl?` /
 `disjoint?` take the asking context, and `disjoint-problem` asks the scoped
-question from the asserting context — the same cone `types-of` was already
+question from the asserting context — the same ancestor set `types-of` was already
 filtered by, so the check's two halves finally agree about where they stand.
 
 The clearest case is also the biggest. Cyc states
@@ -645,14 +645,15 @@ entity is an `#$Organization` and so an `#$Agent-Generic`, and that it is a
 `#$GeographicalRegion` and so a `#$Place`. The corpus's own topology is what shows why
 Cyc stays consistent, and it is *not* that the microtheories are unrelated:
 PhysicalGeographyMt **does** see UniversalVocabularyMt, where most of that chain lives.
-It is that the cone cuts the chain somewhere in both directions —
+It is that the ancestor set cuts the chain somewhere in both directions —
 
-* PhysicalGeographyMt's cone is 109 of the 13,302 context terms, and the AURA biology
+* PhysicalGeographyMt's ancestor set is 109 of the 13,302 context terms, and the AURA biology
   mapping that holds `(genls #$City #$GeopoliticalEntity)` is **not** in it; and
 * only **3** contexts see PhysicalGeographyMt at all, so from wherever a city is
   actually asserted, the disjointness is invisible.
 
-So the disjointness and the full subsumption path never coexist in any one Mt's cone,
+So the disjointness and the full subsumption path never coexist in any one Mt's
+ancestor set,
 and Cyc never has the clash to resolve. The global closure had both, everywhere:
 **that one assertion produced 7,400 clashes, about half of the total**, and 78 disjoint
 pairs accounted for all of them. Dropping the imported external ontologies
@@ -724,7 +725,8 @@ rather than as metadata. The same goes for `arity`, `argFormat`, `quotedIsa`,
 `negationInverse` and the rest of the vocabulary vaelii has no theory of: stored and
 queryable, but nothing in the engine reads them.
 
-What is above is the whole of the comparison this document owes: what the reader takes
+The sections above are the whole of the comparison this document owes: what the reader
+takes
 from Cyc, what it narrows, and what it stores without interpreting. The wider
 engine-to-engine comparison is in vaelii's internal design notes, which are not
 published — so nothing here points at it.

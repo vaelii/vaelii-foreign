@@ -30,7 +30,7 @@
     never lower them to make a change pass.
 
   The gap that remains is mostly one design decision: this is *one grammar for three
-  syntaxes*, so a fourth term reads as an N-Quads graph label rather than as the error
+  syntaxes*, so a fourth term parses as an N-Quads graph label rather than as the error
   Turtle alone would call it.  `vaelii.foreign.turtle`'s docstring argues for that, and
   a handful of `turtle-syntax-bad-struct-*` tests are what it costs."
   (:require [clojure.test :refer [deftest is testing]]

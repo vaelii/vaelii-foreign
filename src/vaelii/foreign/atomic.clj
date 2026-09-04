@@ -39,7 +39,7 @@
   alongside as `(nodeText PersonXAbandonsAltogether \"PersonX abandons ___ altogether\")`.
 
   The temptation is to make `baseball bat` a type and `PersonX abandons ___ altogether`
-  an event template, and it is worth saying why that is not done: ATOMIC never marks
+  an event template, and the reason that is not done is that ATOMIC never marks
   which of its nodes are kinds, the same string appears on both sides of relations from
   different families, and a type with no members and no supertype is a name with nothing
   attached.  Inventing a type system the corpus does not have would make the output look
@@ -280,7 +280,7 @@
   ([kb dir opts] (corpus/load-dir! kb dir profiles opts)))
 
 (def reader
-  "This format's reader, as the seam (`vaelii.impl.foreign`) hands it out."
+  "This format's reader, as the extension point (`vaelii.impl.foreign`) hands it out."
   {:name       "ATOMIC commonsense graph"
    :load-dir!  load-dir!
    :convert!   convert!

@@ -455,7 +455,8 @@
   The two named here would each read as a loss without a kind, and neither is one.
   `:obsolete` is a **policy**: the stanza is well-formed, this reader declines to import
   a term the ontology has retired, and `--obsolete` imports it after all.  PATO retires
-  919 of its 2,820 stanzas, so a clean conversion of it reads as a third broken until
+  919 of its 2,820 stanzas, so a clean conversion of it is indistinguishable from a third
+  broken until
   the kind says otherwise.  `:existential-intersect` is a **weakening**: the fact is
   written and only the biconditional is lost, so `uo.obo` reports 81 drops of 574
   stanzas while losing nothing at all.  What is left is `:unread`: a name the ontology
@@ -560,7 +561,7 @@
   ([kb dir opts] (corpus/load-dir! kb dir profiles opts)))
 
 (def reader
-  "This format's reader, as the seam (`vaelii.impl.foreign`) hands it out."
+  "This format's reader, as the extension point (`vaelii.impl.foreign`) hands it out."
   {:name       "OBO ontology"
    :load-dir!  load-dir!
    :convert!   convert!

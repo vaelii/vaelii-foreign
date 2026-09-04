@@ -373,7 +373,7 @@
   ([kb dir opts] (corpus/load-dir! kb dir profiles opts)))
 
 (def reader
-  "This format's reader, as the seam (`vaelii.impl.foreign`) hands it out."
+  "This format's reader, as the extension point (`vaelii.impl.foreign`) hands it out."
   {:name       "WordNet database"
    :load-dir!  load-dir!
    :convert!   convert!

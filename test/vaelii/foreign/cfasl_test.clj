@@ -90,7 +90,7 @@
     (is (seq? (read1 [0x0D 0x82 0x81 0x82]))))
   (testing "nested lists"
     (is (= '(1 (2 3)) (read1 [0x0D 0x82 0x81 0x0D 0x82 0x82 0x83]))))
-  (testing "a general vector reads as a vector, keeping it distinct from a list"
+  (testing "a general vector decodes to a vector, keeping it distinct from a list"
     (is (= [1 2] (read1 [0x0E 0x82 0x81 0x82])))))
 
 (deftest keywords-and-subl-symbols
@@ -198,7 +198,7 @@
 
     (testing "a list one element short ends the object, not the stream"
       (is (= :cfasl/truncated (kind [0x0D 0x82 0x81]))
-          "two promised, one given — reading `::eof` as an element is the same door"))))
+          "two promised, one given — reading `::eof` as an element is the same failure"))))
 
 (deftest objects-streams-to-the-end
   (is (= [1 2 "a"] (vec (cfasl/objects (stream [0x81 0x82 0x0F 0x81 0x61]) nil))))
