@@ -16,6 +16,32 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.17.0] — 2026-09-06
+
+**`check-prose.py` gains P4: a copula with `are` straight after it fails the build.**
+Carried from the engine, where one tree-wide substitution rewrote `read as a` to `are
+indistinguishable from a` as a substring replace and left `is read as a` standing as `is
+are indistinguishable from a` in 67 sentences. No sentence needs the pair, so a hit marks
+a phrase substituted in without its verb being fixed. P4 is a guard on P1 and P2 rather
+than a style rule of its own. Two collisions are excluded: `clojure.test` publishes both
+`is` and `are`, so `:refer [deftest testing is are]` is a require and not a sentence, and
+a compound ending in a copula puts the word boundary after the hyphen, as in OpenCyc's
+`many states-of-being are conceptualized`. *Class:* **Fix** — a lint rule in
+`scripts/`; no reader map key, `load-dir!` signature or corpus `:format` moves, and a
+corpus written under 0.16.0 opens unchanged. *Migration:* none.
+
+**The number.** Requires core 0.17.0, which carries one **Breaking** entry and four
+**Refusal** entries: `predAllSpecified` and `predSpecifiedAll` go binary and their audit
+returns a `:status` map, the arity policy refuses an exact predicate type beside
+`variable_arity`, `genl` withdraws its argument-position declaration, fifteen unary marks
+drop declarations that convicted nothing, and the assertive argument-type reading mints
+where it convicted. None of the five reaches this repo. Nothing here writes a `predAll`
+declaration or calls the audit; the readers emit `binary_predicate` in a docstring
+example alone and never beside `variable_arity`; the two withdrawn declaration sets
+remove refusals rather than adding them; and the fifth fires only under
+`VAELII_ASSERTIVE_ARG_TYPES`, which is off by default, so `cyc_test`'s `{:arg-type 1}`
+refusal count is unchanged.
+
 ## [0.16.0] — 2026-09-04
 
 **The prose here is reworded to say what the code does.** Comments, docstrings, doc pages,
