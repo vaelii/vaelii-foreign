@@ -47,7 +47,7 @@
 
 (deftest each-reader-offers-what-the-engine-asks-it-for
   ;; The integration contract between the two repos, stated as the keys the engine's call
-  ;; sites reach for: `vaelii.impl.catalog` asks a corpus to load a directory.  A reader
+  ;; sites reach for: `vaelii.host.catalog` asks a corpus to load a directory.  A reader
   ;; map carries capability rather than implementing a protocol, so a missing key is only
   ;; ever found by asking — here, or in production.
   (doseq [[kind _] @manifest]

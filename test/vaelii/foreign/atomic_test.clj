@@ -13,7 +13,7 @@
             [vaelii.core :as v]
             [vaelii.foreign.atomic :as atomic]
             [vaelii.foreign.test-util :as tu]
-            [vaelii.impl.core-context :as core-context])
+            [vaelii.host.core-context :as core-context])
   (:import (java.io File)))
 
 (def ^:private fixture "test/resources/atomic")

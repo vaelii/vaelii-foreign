@@ -522,12 +522,15 @@
 (defn- lang-of [x] (when (ttl/tagged? x) (:lang x)))
 
 (defn- rule
-  "An `implies` at monotonic strength — an OWL axiom is definitional, so there is no
-  direction wrapper and no defeasibility to re-apply."
+  "A `set/forwardRule` at monotonic strength.  An OWL axiom is definitional, so it
+  forward-materializes its conclusion and still answers backward proof; a bare `implies`
+  defaults to backward since engine 0.18.0, which leaves a multi-step definition — a
+  member of one derived class feeding another — uncomposed.  No defeasibility to re-apply."
   [antecedents consequent]
-  (list 'implies
-        (if (next antecedents) (apply list 'and antecedents) (first antecedents))
-        consequent))
+  (list 'set/forwardRule
+        (list 'implies
+              (if (next antecedents) (apply list 'and antecedents) (first antecedents))
+              consequent)))
 
 (defn- class-rules
   "The sentences a `C <axiom> <blank node>` triple states, given the axiom's direction.

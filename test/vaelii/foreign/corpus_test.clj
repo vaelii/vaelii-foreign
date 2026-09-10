@@ -17,7 +17,7 @@
             [vaelii.foreign.corpus :as corpus]
             [vaelii.foreign.obo :as obo]
             [vaelii.foreign.test-util :as tu]
-            [vaelii.impl.core-context :as core-context])
+            [vaelii.host.core-context :as core-context])
   (:import (java.io File)))
 
 ;;; ── the order contexts load in ────────────────────────────────────────

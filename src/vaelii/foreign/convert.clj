@@ -195,7 +195,7 @@ namespace whose
           kb (v/open-kb {:backend :disk :dir b :recover? false})
           profile (keyword (or (second (drop-while #(not= "--profile" %) (cons c more)))
                                "full"))]
-      ((requiring-resolve 'vaelii.impl.core-context/load-into) kb)
+      ((requiring-resolve 'vaelii.host.core-context/load-into) kb)
       (println (str "loading a " fmt " corpus, profile " profile))
       (println (pr-str ((:load-dir! reader) kb (str dir) {:profile profile})))
       ;; In this process, and it has to be: what is owed a derivation is tracked in

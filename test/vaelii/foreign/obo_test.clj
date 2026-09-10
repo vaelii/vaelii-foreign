@@ -12,7 +12,7 @@
             [vaelii.core :as v]
             [vaelii.foreign.obo :as obo]
             [vaelii.foreign.test-util :as tu]
-            [vaelii.impl.core-context :as core-context])
+            [vaelii.host.core-context :as core-context])
   (:import (java.io File)))
 
 (def ^:private fixture "test/resources/obo/tiny.obo")

@@ -20,7 +20,7 @@
             [vaelii.foreign.cycl :as cycl]
             [vaelii.foreign.term :as term]
             [vaelii.foreign.test-util :as tu]
-            [vaelii.impl.core-context :as core-context]
+            [vaelii.host.core-context :as core-context]
             [vaelii.impl.naming :as nm])
   (:import (java.io File StringReader)))
 
@@ -564,22 +564,23 @@
             (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxBaseKB))
                 "the fact is kept, because every membership was loaded before it")))))))
 
-(deftest the-membership-layer-is-what-keeps-it
-  (testing "with memberships interleaved, the same corpus loses the fact — which is why
-            the layer exists, and what a future reordering would silently undo"
+(deftest assertive-wf-mints-the-missing-membership
+  (testing "with memberships demoted to ordinary facts, assertive wf mints the type the
+            relational fact's argument needs rather than refusing it, so file order no
+            longer decides whether the fact is kept"
     (with-dump-file late-membership-dump
       (fn [dump ^File dir]
         (let [out (io/file dir "corpus")]
           (cyc/convert! dump (str out) {})
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
-            ;; every membership demoted to an ordinary fact, so file order decides
+            ;; every membership demoted to an ordinary fact, so file order would decide
             (with-redefs [corpus/type-membership? (constantly false)]
               (let [loaded (cyc/load-dir! kb (str out) {:chain? false})]
-                (is (= {:arg-type 1} (:refusals loaded))
-                    "the relational fact is refused on Alice's partial type set")
-                (is (empty? (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxBaseKB))
-                    "and no later membership brings it back — a refusal is not revisited")))))))))
+                (is (empty? (:refusals loaded))
+                    "the relational fact is not refused — its argument's type is minted")
+                (is (seq (v/sentexes-matching kb '(ownerOf AlicePerson Rover) 'CxBaseKB))
+                    "and the fact is kept, minted from its own argument declaration")))))))))
 
 (deftest a-reified-nat-gets-its-result-types-however-late-they-are-stated
   ;; A NART materializes its `result` types and `genlResult` edges **at mint time**,
@@ -655,8 +656,9 @@
           (core-context/load-into kb)
           (cyc/load-dir! kb (str out) {:chain? true})
           (v/assert kb '(dog Rover) 'CxBaseKB)
-          (is (seq (v/sentexes-matching kb '(mammal Rover) 'CxBaseKB))
-              "the rule Cyc said it implements in code is one vaelii can run")
+          (is (v/ask? kb '(mammal Rover) 'CxBaseKB)
+              "the rule Cyc said it implements in code is one vaelii can run — backward by
+               default, so it derives rather than materializes")
           (is (seq (v/sentexes-matching kb '(sharedNotes dog "a note between curators")
                                         'CxBaseKB))
               "and the editorial note is an ordinary fact"))))))

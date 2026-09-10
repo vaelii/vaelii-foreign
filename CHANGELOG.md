@@ -16,6 +16,33 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.18.0] — 2026-09-09
+
+**OWL definitional axioms are asserted `set/forwardRule`, and the loader tracks the
+engine's `vaelii.host.*` layer.** Engine 0.18.0 makes a bare `implies` default to backward,
+with forward chaining opt-in, so an OWL axiom emitted as a bare rule no longer materializes
+its conclusion. A multi-step definition then stops composing: `Bodied ≡ ∃hasPart.Limb`
+concludes `bodied` from a `limb` that another axiom derives, and with both rules backward
+the two no longer chain through `forward-chain`. `rdf.clj`'s `rule` now wraps every OWL
+axiom in `set/forwardRule` — forward and backward — restoring the materialization the old
+bare-`implies` default gave. A corpus converted under 0.18.0 therefore writes
+`(set/forwardRule (implies …))` where 0.17.0 wrote `(implies …)`: a translation change, not
+a format change, so the `:format` line is unmoved and an existing corpus opens unchanged.
+Separately, the loader requires `vaelii.host.core-context` where the engine moved it from
+`vaelii.impl.core-context`; no reader map key or `load-dir!` signature changes.
+*Class:* **Fix** (the RDF reasoning derives what it derived before). *Migration:* none for
+a caller; a corpus is re-converted rather than migrated.
+
+**The number.** Requires core 0.18.0, which carries two **Breaking** entries and one
+**Refusal**, two of which reach this repo. A bare `implies` now defaults to backward and
+`set/forwardRule` means forward and backward — the change the OWL entry above answers, and
+the reading Cyc already used (`cyc.clj` wraps a `:forward` code rule as `set/forwardRule`,
+and an ordinary imported rule is backward by default). The assertive argument-type reading
+is on by default, so `cyc_test`'s membership layer mints the type a demoted-membership fact
+needs rather than refusing it — `{:arg-type 1}` is now an empty `:refusals` and the fact is
+kept. The `arityMin` refusal reaches no reader, since none emits a variable-arity relation
+below its floor.
+
 ## [0.17.0] — 2026-09-06
 
 **`check-prose.py` gains P4: a copula with `are` straight after it fails the build.**

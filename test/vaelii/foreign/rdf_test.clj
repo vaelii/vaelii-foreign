@@ -14,7 +14,7 @@
             [vaelii.foreign.rdf :as rdf]
             [vaelii.foreign.suite :as suite]
             [vaelii.foreign.test-util :as tu]
-            [vaelii.impl.core-context :as core-context])
+            [vaelii.host.core-context :as core-context])
   (:import (java.io File)))
 
 (def ^:private ttl-fixture "test/resources/rdf/tiny.ttl")
@@ -69,21 +69,22 @@
   (converted
    (fn [dir _]
      (is (contains? (set (tu/corpus-sentences dir))
-                    '(implies (and (hasParent ?x0 ?x1) (hasParent ?x1 ?x2))
-                              (hasGrandparent ?x0 ?x2)))))))
+                    '(set/forwardRule
+                      (implies (and (hasParent ?x0 ?x1) (hasParent ?x1 ?x2))
+                               (hasGrandparent ?x0 ?x2))))))))
 
 (deftest the-horn-fragment-of-owl-restrictions
   (converted
    (fn [dir report]
      (let [ss (set (tu/corpus-sentences dir))]
        (testing "C ⊑ ∀P.D is a rule: a universal in the conclusion is exactly one"
-         (is (contains? ss '(implies (and (dog ?x) (hasPart ?x ?y)) (limb ?y)))))
+         (is (contains? ss '(set/forwardRule (implies (and (dog ?x) (hasPart ?x ?y)) (limb ?y))))))
        (testing "C ≡ ∃P.D keeps its sufficient-condition half — the direction that is Horn"
-         (is (contains? ss '(implies (and (hasPart ?x ?y) (limb ?y)) (bodied ?x)))))
+         (is (contains? ss '(set/forwardRule (implies (and (hasPart ?x ?y) (limb ?y)) (bodied ?x))))))
        (testing "C ≡ D1 ⊓ D2 gives both edges and the rule"
          (is (contains? ss '(genl puppy dog)))
          (is (contains? ss '(genl puppy young)))
-         (is (contains? ss '(implies (and (dog ?x) (young ?x)) (puppy ?x)))))
+         (is (contains? ss '(set/forwardRule (implies (and (dog ?x) (young ?x)) (puppy ?x))))))
        (testing "C ⊑ ∃P.D has no Horn reading and says so by name"
          (is (= 1 (get-in report [:drop-reasons :existential-superclass]))
              "the existential superclass is dropped, and counted as itself")
@@ -204,7 +205,7 @@
   (n-ary
    (fn [dir report]
      (let [ss (set (tu/corpus-sentences dir))]
-       (is (contains? ss '(implies (and (dog ?x) (hasPart ?x ?y)) (limb ?y))))
+       (is (contains? ss '(set/forwardRule (implies (and (dog ?x) (hasPart ?x ?y)) (limb ?y)))))
        (is (empty? (filter #(and (= 'arity (first %)) (= 'hasPart (second %))) ss)))
        (is (pos? (get-in report [:drop-reasons :structural]))
            "and its interior is counted as consumed, not as lost")))))
