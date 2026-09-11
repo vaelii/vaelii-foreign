@@ -16,6 +16,20 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.18.1] — 2026-09-11
+
+**No plugin change this release; the reader tracks engine 0.18.1.** No reader map key,
+corpus format or `load-dir!` signature moves, and a corpus written under an earlier version
+opens unchanged. The release exists to hold the plugin's coordinate at the engine's version,
+which the engine's `:with-foreign` profile names. *Class:* none — no code, corpus or format
+change.
+
+**The number.** Requires core 0.18.1, which carries **no Breaking** entries — two Refusal,
+four Additive, six Fix. None reaches this repo: the engine's new option-domain refusals
+reject a bound of the wrong type at entry points this reader passes integers to, the
+`assert-inert` and `describe` refusals name shapes this reader does not send, and the
+content-hash naming of a reified constant is an opaque symbol the reader never reads back.
+
 ## [0.18.0] — 2026-09-09
 
 **OWL definitional axioms are asserted `set/forwardRule`, and the loader tracks the
