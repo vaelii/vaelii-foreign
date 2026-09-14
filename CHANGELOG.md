@@ -16,6 +16,25 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.19.0] — 2026-09-13
+
+**The plugin moves to Clojure 1.12.6 and tracks engine 0.19.0.** No reader map key,
+corpus format or `load-dir!` signature moves, and a corpus written under an earlier version
+opens unchanged. The Clojure dependency moves from 1.12.5 to 1.12.6, and the `cyc.clj` and
+`units.clj` docstrings state a negative literal's sign as its sentence's head `not`, where
+they named a polarity slot the engine no longer carries. *Class:* none — no reader, corpus
+or format change.
+
+**The number.** Requires core 0.19.0, which carries **five Breaking** entries — and four
+Refusal, one Additive, seven Fix. One entry reaches this repo, and it is a Refusal: `assert`
+refuses a `genlCx` edge that closes a context cycle, so a source whose `owl:imports` or
+`genlMt` statements form a cycle loads with the closing edge counted under `load-dir!`'s
+`:refusals` as `:not-well-formed`, where it stored before. None of the five Breaking entries
+reaches it. The reader never reads a sentex map's `:sentence` or `:polarity` or a
+justification's `:antecedents`, and calls neither `bravely` nor `cautiously`. It loads every
+declaration in its schema layer ahead of the facts the declaration governs, so the `:refuse`
+late-declaration change finds no declaration arriving after its content.
+
 ## [0.18.1] — 2026-09-11
 
 **No plugin change this release; the reader tracks engine 0.18.1.** No reader map key,

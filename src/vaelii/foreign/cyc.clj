@@ -690,9 +690,9 @@
               (ok [(wrap-rule body strength direction)])
               {:dropped :untranslatable-rule}))
 
-          ;; a negative unit clause.  vaelii stores `(not S)` as a first-class sentex —
-          ;; the record's own `:polarity`, not a wrapper — so this is the same fact with
-          ;; the other polarity, and dropping it would lose a claim we can hold.
+          ;; a negative unit clause.  vaelii stores `(not S)` as a first-class sentex whose
+          ;; sign is the sentence's head `not`, so this is the same fact with the other
+          ;; polarity, and dropping it would lose a claim we can hold.
           (= 'cyc/not head)
           (let [[polarity inner] (clause-literal formula)]
             (cond
