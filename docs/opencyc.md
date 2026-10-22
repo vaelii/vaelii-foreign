@@ -125,7 +125,7 @@ KB. On `units/5022` every table agreed to the record — 188,111 constants, 48,2
 
 The count is the only check that catches a desynchronized traversal, and it is a strong
 one, because a stream out of step does not stop yielding records — it stops yielding the
-right number of them. It does not pin the *predicate* each formula ends up under, so
+right number of them. It does not determine the *predicate* each formula ends up under, so
 that is stated here too. Reading the whole dump and counting formula heads
 (through a `not`, since a false gaf is wrapped):
 
@@ -225,7 +225,7 @@ taxonomy. vaelii writes a membership as `(type Individual)` and a functor has to
 name, so the NART is minted a **type** symbol the same way — `city_in_country_fn_canada`
 — and the corpus writes its definition:
 
-    (termOfUnit city_in_country_fn_canada (CityInCountryFn Canada))
+    (natFormula city_in_country_fn_canada (CityInCountryFn Canada))
 
 That sentence is why the naming is worth doing rather than dropping the assertion. Left
 to itself the engine mints its own constant for the expression the first time it meets
@@ -235,11 +235,11 @@ definition written first, `(genl (CityInCountryFn Canada) city)` and
 `(city_in_country_fn_canada CityOfEricksonCanada)` are **one term**, so the membership
 joins the taxonomy instead of hanging off an anonymous twin. It is written into the
 corpus's `:terms` layer, which loads before everything else for that reason: a
-`termOfUnit` arriving after a sentence that mentions its expression mints a second
+`natFormula` arriving after a sentence that mentions its expression mints a second
 constant for it, and the two have to be reconciled afterwards.
 
 Naming is **depth one** — `(F a b)` over constants and literals. A nested
-`(CollectionIntersection2Fn (GroupFn A) B)` is left structural, because `termOfUnit`
+`(CollectionIntersection2Fn (GroupFn A) B)` is left structural, because `natFormula`
 quotes its argument while every other position reifies, so the two spellings of one
 expression would not meet. That is the whole of the remaining `:unnameable-type` count:
 124 assertions of the 4,218 with a computed collection, the other 4,094 read.
@@ -315,7 +315,7 @@ produced 58,989 drops and **643** losses:
 
 | reason | kind | count | |
 |--------|------|-------|-|
-| `:nart-definition` | restated | 48,244 | Cyc's own `termOfUnit`, which this reader writes itself from the name table |
+| `:nart-definition` | restated | 48,244 | Cyc's own `termOfUnit`, which this reader writes itself as `natFormula` from the name table |
 | `:trigger-code` | filtered | 4,657 | `afterAdding` / `afterRemoving` hold SubL the engine runs, not a claim it holds |
 | `:subl-code` | filtered | 3,986 | a bare Lisp symbol anywhere in the formula |
 | `:context-declaration` | restated | 1,341 | `(isa X Microtheory)` — carried by the topology instead |
@@ -426,10 +426,10 @@ The load is layered — **term definitions, hierarchy, the rest of the schema, t
 memberships, then the remaining facts** — the same layering the shipped ontology uses,
 and each step is read by the one after it.
 
-Term definitions are an **identity** argument. `(reifiable_function F)` and `(termOfUnit
+Term definitions are an **identity** argument. `(reifiable_function F)` and `(natFormula
 K E)` decide which constant a non-atomic term reifies to, and Cyc's KB is full of them:
 a sentence mentioning `(F a)` structurally is reified against those declarations as they
-stand at that moment. Arriving late, a `termOfUnit` mints a second constant for an
+stand at that moment. Arriving late, a `natFormula` mints a second constant for an
 expression that already has one, and a `reifiable_function` misses the reification
 altogether — the NAT was stored as a compound and no later declaration goes back for it.
 13,966 of the corpus's type names are computed collections defined this way, and the
@@ -475,7 +475,7 @@ assert path are sized by the answer, and each is invisible until a KB is this wi
   collisions a merge can create all name its representative, which the inverted term
   index answers in the size of the class.
 * `res/candidate-handles` routes a **compound argument sitting after a variable**
-  — `(termOfUnit ?k (FruitFn AppleTree))`, the NAT dedup probe — to the argument
+  — `(natFormula ?k (FruitFn AppleTree))`, the NAT dedup probe — to the argument
   roots, which key the compound whole. The trie reaches it only by fanning out over
   the intervening variable, i.e. over every NAT minted so far. A ground argument the
   trie cannot prefix is the roots' case, compound or not.
@@ -668,7 +668,7 @@ lookup. A clash that becomes visible *jointly* — from a descendant that sees p
 no single writer could — is reported by `settle`'s exposure pass in
 `(violations kb)` rather than blamed on a writer (the engine's own
 `disjoint_test/a-disjointness-counts-only-where-its-declaration-is-visible` and
-`exposure_test` pin both halves).
+`exposure_test` assert both halves).
 
 **There are 638 of them, and this corpus is what sized the pass that finds them.** A
 separating declaration reaches back over the instances already stored, and the

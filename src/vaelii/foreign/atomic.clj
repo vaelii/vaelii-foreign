@@ -155,8 +155,8 @@
 
 (defn translate
   "The sentences one row becomes, or `{:dropped reason}`.  Everything lands `:default`:
-  an ATOMIC tuple is what people said usually follows, and there is no other strength
-  that is honest about it."
+  an ATOMIC tuple is what people said usually follows, and `:default` is the only
+  strength that claims no more than that."
   ([row names] (translate row names {}))
   ([{:keys [head relation tail]} names opts]
    (let [h (:term (names head))

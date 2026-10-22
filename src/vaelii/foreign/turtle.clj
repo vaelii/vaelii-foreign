@@ -34,9 +34,9 @@
 
   A literal is a **plain Clojure value** whenever it has nothing else to say — a
   language tag or a datatype vaelii has no native reading of is what makes it a map
-  instead.  That keeps the common case cheap and the tagged case honest: a Wikidata
-  dump's labels differ only by `@lang`, and a reader that dropped the tag would make
-  fifty translations of one label indistinguishable.
+  instead.  The common case stays a bare value and the tagged case keeps its tag: a
+  Wikidata dump's labels differ only by `@lang`, and a reader that dropped the tag would
+  make fifty translations of one label indistinguishable.
 
   **Blank nodes are expanded, not deferred.**  `[ :p :o ]` and `( a b c )` are
   abbreviations for triples about a fresh blank node, so the reader emits those triples

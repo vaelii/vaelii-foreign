@@ -333,7 +333,7 @@
   `subClassOf` as a vaelii predicate would put a name in `names.edn` that no sentence
   uses and invite a reader of the corpus to think it means something.  An RDF vocabulary
   term this reader has **no** reading for is deliberately not in here — `rdfs:seeAlso`
-  gets a name and becomes an ordinary fact, which is the honest outcome."
+  gets a name and becomes an ordinary fact, which stores it without claiming a reading."
   (into (set (concat structural-predicates meta-types
                      (keys annotation-predicates)
                      [a-type a-subclass a-subprop a-domain a-range a-imports
@@ -761,8 +761,8 @@
 (defn- source-context
   "The context a triple lands in: its named graph, else the ontology the file declares,
   else one named for the source.  A graph that says nothing about where its statements
-  hold still has to put them somewhere, and a context named for the file is at least
-  honest about being an artefact of the import."
+  hold still has to put them somewhere, and a context named for the file states that it
+  is an artefact of the import."
   [names default {:keys [g]}]
   (or (when g (:term (names g))) default))
 

@@ -42,8 +42,8 @@ other.
 ## Using it
 
 Add the dependency, and the engine finds the readers — Leiningen
-`[com.vaelii/vaelii-foreign "0.19.0"]`, or deps.edn
-`com.vaelii/vaelii-foreign {:mvn/version "0.19.0"}` — from
+`[com.vaelii/vaelii-foreign "0.28.0"]`, or deps.edn
+`com.vaelii/vaelii-foreign {:mvn/version "0.28.0"}` — from
 [Clojars](https://clojars.org/com.vaelii/vaelii-foreign). It depends on the engine at
 the version it was cut with, so a project naming only this one gets both.
 
@@ -144,7 +144,7 @@ lein test :suite   → only those — the W3C syntax suites and three real OBO o
 A checkout that never runs it still runs everything else, which is why the fixtures under
 `test/resources` are hand-authored; the suite tests print what they skipped and pass.
 CI runs the W3C half of `:suite` as its own job, fetching those suites at the revision
-the script pins and failing when they do not land — a floor nothing runs is a number
+the script names and failing when they do not land — a floor nothing runs is a number
 from whenever somebody last looked.
 
 `lein lint` needs `clj-kondo` and `shellcheck` on PATH. The reflection stage

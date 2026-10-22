@@ -155,7 +155,7 @@
     ;; `(reifiable_function F)` is `schema?` too, and a `genl` mentioning `(F a)`
     ;; structurally is `:hierarchy` — so either arriving first would store the NAT as a
     ;; compound no later declaration goes back for
-    (is (= :terms (corpus/layer-of '(termOfUnit city_in_country_fn_canada (CityInCountryFn Canada)))))
+    (is (= :terms (corpus/layer-of '(natFormula city_in_country_fn_canada (CityInCountryFn Canada)))))
     (is (= :terms (corpus/layer-of '(reifiable_function CityInCountryFn))))
     (is (= :terms (corpus/layer-of '(result FruitFn fruit))))))
 

@@ -90,8 +90,8 @@ namespace whose
 
 (defn- flag-options
   "The convert options a flag list carries.  Every flag is shared across formats where
-  it means the same thing and ignored by a reader it does not apply to, which is what
-  keeps one command line over five converters honest."
+  it means the same thing and ignored by a reader it does not apply to, so one command
+  line means the same thing to all five converters."
   [args]
   (let [present (set args)
         value   (fn [flag] (second (drop-while #(not= flag %) args)))]

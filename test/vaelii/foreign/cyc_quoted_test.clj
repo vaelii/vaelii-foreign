@@ -52,11 +52,12 @@
              (set (:sentences (t 'cyc/arg1QuotedIsa))))))))
 
 (deftest the-preamble-declares-quote-and-the-cycl-hierarchy
-  ;; the fixed vocabulary a quotedIsa corpus rides on: Quote reifiable + quoting, and the
-  ;; cycl_* hierarchy the mapped collections live in.
+  ;; the fixed vocabulary a quotedIsa corpus rides on: Quote reifiable, and the cycl_*
+  ;; hierarchy the mapped collections live in.  No sentence names Quote quoting, since the
+  ;; engine fixes it as a quoting function.
   (let [vocab (set cyc/quote-vocabulary)]
     (is (contains? vocab '(reifiable_function Quote)))
-    (is (contains? vocab '(quoting_function Quote)))
+    (is (not-any? #(= 'quoting_function (first %)) vocab))
     (is (contains? vocab '(result Quote cycl_expression)))
     (is (contains? vocab '(genl cycl_constant cycl_reifiable_denotational_term)))
     (is (= 'cycl_constant (cyc/cycl-collection-names 'cyc/CycLConstant)))))

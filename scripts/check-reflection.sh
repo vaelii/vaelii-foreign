@@ -13,7 +13,7 @@
 # Every namespace this artifact requires is loaded under the same global flag,
 # so reflection from a dependency leaks into the output too — and the biggest
 # dependency here is vaelii core, whose whole `impl` tree loads to satisfy one
-# `require`. ALLOW below scopes the gate to the source this repo can actually
+# `require`. ALLOW below scopes the check to the source this repo can actually
 # fix: core's reflection is core's to answer for, not something a reader out
 # here can repair or should be blocked by. Add a third-party dep to ALLOW only
 # after confirming its newest release still reflects.
@@ -32,7 +32,7 @@ PATTERNS='Reflection warning|Auto-boxing|recur arg for primitive'
 
 # Sources this repo does not own. `vaelii/(core|impl)/` is the engine: it has no
 # reflection stage in its own lint, so warnings do surface from it, and they are
-# reported there rather than failing a reader's gate. The lein `run -m` wrapper
+# reported there rather than failing this repo's reflection check. The lein `run -m` wrapper
 # (form-init*.clj) is generated, not compiled by `check`, but stays here so a
 # stray `lein run` log lints clean too.
 ALLOW='form-init[0-9]*\.clj|vaelii/core\.clj|vaelii/core/|vaelii/impl/'

@@ -264,8 +264,8 @@
 ;;; ── an assertion read as the clause it is ─────────────────────────────
 ;;
 ;; Cyc holds an assertion as a CNF clause — positive literals and negative ones — and
-;; that split is vaelii's own polarity, so the shapes a clause can take are the cases
-;; worth pinning down.  Three of them have a vaelii reading and two do not, and the two
+;; that split is vaelii's own polarity, so the tests below assert each shape a clause
+;; can take.  Three of them have a vaelii reading and two do not, and the two
 ;; are refused for *different* reasons: a real disjunction is a claim we cannot state,
 ;; an all-negative clause is an integrity constraint we have no form for.
 
@@ -375,9 +375,9 @@
                   "the Horn disjunction fired as the rule it is"))))))))
 
 (deftest the-quote-preamble-is-emitted-only-for-a-quoting-corpus
-  ;; `(quoting_function Quote)` arms the engine's mention-opacity walk, so a corpus that
-  ;; never mentions a term (no `quotedIsa`) must not carry it — the engine's
-  ;; zero-cost-until-declared contract.  A quoting corpus does declare it.
+  ;; The preamble makes `Quote` reifiable and states the `cycl_*` hierarchy, so a corpus
+  ;; with no `Quote` term (no `quotedIsa`, no raw `#$Quote`) states none of it.  None of the
+  ;; three corpora states a quoting declaration: the engine fixes `Quote` as quoting.
   (testing "a corpus WITH quotedIsa declares the quote machinery and the mention lands"
     (with-dump-file
       (str/join "\n"
@@ -389,27 +389,36 @@
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (seq (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
-                "the opacity gate is armed")
+            (is (seq (v/sentexes-matching kb '(reifiable_function Quote) 'CxBaseKB))
+                "the reifiable mark is stored")
+            (is (empty? (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
+                "and no quoting declaration is")
             (is (seq (v/sentexes-matching kb '(cycl_constant (Quote dog)) 'CxBaseKB))
                 "and the quoted membership is believed"))))))
-  (testing "a raw #$Quote with no quotedIsa STILL arms the gate — Quote is always quoting"
-    ;; #$Quote renames to the reserved Quote functor and passes through, so a Quote term
-    ;; can exist with no quotedIsa in the corpus.  The preamble must ride with the functor,
-    ;; or the mention would be stored un-opaque and fold on an identity merge.
+  (testing "a raw #$Quote with no quotedIsa emits the preamble, and its mention stays opaque"
+    ;; #$Quote renames to the engine's Quote functor and passes through, so a Quote term
+    ;; can exist with no quotedIsa in the corpus.  An identity merge of the two referents
+    ;; leaves the two quoted terms distinct.
     (with-dump-file
       (str/join "\n"
                 ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
-                 "(ke-assert '(#$believes #$Tom (#$Quote #$Bar)) #$BaseKB :monotonic :forward)"])
+                 "(ke-assert '(#$isa #$Bar #$Dog) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$isa #$Baz #$Dog) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$believes #$Tom (#$Quote #$Bar)) #$BaseKB :monotonic :forward)"
+                 "(ke-assert '(#$believes #$Tom (#$Quote #$Baz)) #$BaseKB :monotonic :forward)"])
       (fn [dump ^File dir]
         (let [out (io/file dir "corpus")]
           (cyc/convert! dump (str out) {})
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (seq (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
-                "a Quote term with no quotedIsa still declares the functor quoting"))))))
-  (testing "a corpus with NO Quote at all omits the preamble, leaving the opacity gate off"
+            (is (seq (v/sentexes-matching kb '(reifiable_function Quote) 'CxBaseKB))
+                "a Quote term with no quotedIsa still carries the preamble")
+            (v/assert kb '(sameAs Bar Baz) 'CxBaseKB)
+            (is (v/same-class? kb 'Bar 'Baz) "the referents merge")
+            (is (v/ask? kb '(different (Quote Bar) (Quote Baz)) 'CxBaseKB)
+                "the quoted terms do not"))))))
+  (testing "a corpus with NO Quote at all omits the preamble"
     (with-dump-file
       (str/join "\n"
                 ["(ke-assert '(#$isa #$Dog #$Collection) #$BaseKB :monotonic :forward)"
@@ -420,8 +429,8 @@
           (tu/with-cleared-kb [kb tu/fresh]
             (core-context/load-into kb)
             (cyc/load-dir! kb (str out) {:chain? true})
-            (is (empty? (v/sentexes-matching kb '(quoting_function Quote) 'CxBaseKB))
-                "no Quote -> no quote preamble -> the engine pays nothing")))))))
+            (is (empty? (v/sentexes-matching kb '(genl cycl_constant ?t) 'CxBaseKB))
+                "no Quote -> no cycl_* hierarchy")))))))
 
 (deftest mints-a-context-for-a-computed-microtheory
   (let [text "(ke-assert '(#$genls #$Magic #$SacredPractice) (#$MtOfBeliefSystemFn #$Wicca) :monotonic :forward)"
@@ -525,12 +534,12 @@
 
 ;;; ── what the load order costs ─────────────────────────────────────────
 ;;
-;; `arg` is open-world about an argument with no type at all and closed about one
-;; that has any: an argument the KB knows *a* type for, but not the required one, is a
-;; violation.  That makes a bulk load order-sensitive in what it keeps — a relational
-;; fact checked before its argument's other memberships have arrived is refused on a
-;; partial answer, and nothing ever revisits it.  The loader answers by loading every
-;; membership before any other fact; these two tests are the before and the after.
+;; The engine convicts a symbol argument only by a type the taxonomy separates from the
+;; declared one, mints the declared membership under its entailing reading, and decides a
+;; held fact again when a membership it read moves.  The loader loads every membership
+;; before any other fact.  These two tests load a relational fact whose licensing
+;; membership is stated later in the file, once through the membership layer and once
+;; with every membership demoted to an ordinary fact, and both keep the fact.
 
 (def ^:private late-membership-dump
   "The pathological shape, and it is the ordinary one: a relational fact whose argument
@@ -677,7 +686,7 @@
     "(ke-assert '(#$isa #$CityOfEricksonCanada (#$CityInCountryFn #$Canada)) #$BaseKB :default :forward)"
     "(ke-assert '(#$genls (#$CityInCountryFn #$Canada) #$City) #$BaseKB :monotonic :forward)"
     ;; and one this reader cannot name: a nested function application, whose inner NAT a
-    ;; `termOfUnit` would quote and every other position would reify
+    ;; `natFormula` would quote and every other position would reify
     "(ke-assert '(#$isa #$X (#$CollectionIntersection2Fn (#$GroupFn #$A) #$B)) #$BaseKB :default :forward)"]))
 
 (deftest a-computed-collection-is-minted-a-type-name
@@ -695,7 +704,7 @@
           ;; an engine-minted `nat/g19374` is unreadable and different on every run,
           ;; which is exactly what a diff between two converted corpora cannot see through
           (is (contains? (sentences-in out "CxBaseKB.monotonic.txt")
-                         '(termOfUnit city_in_country_fn_canada (CityInCountryFn Canada)))))
+                         '(natFormula city_in_country_fn_canada (CityInCountryFn Canada)))))
 
         (testing "what is still unnameable says so under its own reason"
           (is (= 1 (get-in report [:drops :unread :unnameable-type])))

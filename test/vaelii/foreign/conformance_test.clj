@@ -7,14 +7,14 @@
   is deliberate — this namespace is the one place a network ever enters.
 
   **The W3C half does not wait for somebody to remember it.**  `test.yml`'s
-  `conformance` job fetches `rdf-tests` at the revision pinned in the fetch script,
+  `conformance` job fetches `rdf-tests` at the revision the fetch script names,
   checks the four manifests really landed — a half-fetched cache would skip here and
   pass, which is the failure that job is shaped around — and runs `lein test :suite`.
   Which copy of the tree runs it automatically is the tier rule in that file's header.
-  The floors below are therefore a gate rather than a reading taken by hand, and the pin
-  is what makes them one: a corpus free to move under a ratchet turns the W3C's next
+  The floors below are therefore a required check rather than a reading taken by hand,
+  and the fixed revision is what makes them one: a corpus free to move under a ratchet turns the W3C's next
   test into our red build.  The OBO half stays a local run for the same reason inverted
-  — those are PURLs to unversioned ontologies, and there is no revision to pin.
+  — those are PURLs to unversioned ontologies, and there is no revision to fix.
 
   **What is asserted, and why it is two different things.**  A reader has two jobs and
   this repo needs them held to different standards:
@@ -104,7 +104,7 @@
     ;; theirs, and both times it was: `{all_only="true"}` qualifiers read as a third
     ;; word, and relations referenced across an ontology boundary without a local
     ;; declaration.
-    ;; Each ontology is looked up on its own rather than gated on one of them: an
+    ;; Each ontology is looked up on its own rather than all on the presence of one: an
     ;; interrupted fetch leaves some of the three, and a half-filled cache should skip
     ;; what it is missing rather than hand the converter an empty path.
     (let [present (filter :src (map #(assoc % :src (suite/cached "obo" (:file %)))

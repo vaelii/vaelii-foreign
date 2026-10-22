@@ -241,18 +241,17 @@
          (is (seq (v/sentexes-matching kb '(award Bob ?a) 'CxNaryTtlGraph)))
          (is (v/ask? kb '(awardName BobAward "Prize") 'CxNaryTtlGraph)))))))
 
-(deftest a-wrong-arity-fact-is-refused-once-the-arity-is-declared
-  ;; What the declaration buys.  Without it vaelii is open-world about arity and a
-  ;; misaligned tuple would store happily and match nothing — which is the failure mode
-  ;; that is hard to find, so it is worth turning into a loud one.
+(deftest a-wrong-arity-fact-is-not-believed-once-the-arity-is-declared
+  ;; Without the declaration vaelii is open-world about arity, so a misaligned tuple is
+  ;; believed and matches no pattern written for the declared length.  With it, the
+  ;; settle places the tuple in a one-member nogood: the tuple stores and reads OUT.
   (n-ary
    (fn [dir _]
      (tu/with-cleared-kb [kb tu/fresh]
        (core-context/load-into kb)
        (rdf/load-dir! kb (str dir) {:chain? false})
-       (let [e (is (thrown? clojure.lang.ExceptionInfo
-                            (v/assert kb '(hasJob Cid Acme) 'CxNaryTtlGraph)))]
-         (is (= :arity (:type (ex-data e)))))))))
+       (is (integer? (v/assert kb '(hasJob Cid Acme) 'CxNaryTtlGraph)))
+       (is (not (v/ask? kb '(hasJob Cid Acme) 'CxNaryTtlGraph)))))))
 
 (deftest a-blank-node-is-not-a-drop
   ;; A blank node is how RDF writes an n-ary relation, so losing one loses a fact rather

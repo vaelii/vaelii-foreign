@@ -3,7 +3,7 @@
 
 # Follow `source`/`.` into sibling files, resolved relative to the sourcing
 # script's own directory — so update-badges.sh's optional
-# `source scripts/badge-extras.sh` is analyzed with its definitions in view
+# `source scripts/badge-extras.sh` is analyzed with its definitions read
 # rather than flagged SC1091.
 external-sources=true
 source-path=SCRIPTDIR

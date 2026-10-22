@@ -25,7 +25,7 @@
     C)` is `(arg p 1 c)`; a `:monotonic` assertion is a `{:strength :monotonic}`
     premise.  Everything without such a mapping stays an ordinary fact under its own
     (renamed) predicate — uninterpreted by the engine but stored, indexed and
-    queryable, which is the honest outcome for vocabulary vaelii has no theory of.
+    queryable, which claims nothing about vocabulary vaelii has no theory of.
 
   * **Some of the dump is not knowledge.**  SubL code (`afterAdding` hooks), forms
     the dumper could not resolve (`(:nart 23227)`), and assertions whose
@@ -176,15 +176,13 @@
   "The fixed preamble a `Quote`-bearing corpus needs, emitted into `CxBaseKB` before the
   facts (like the computed-collection definitions) and **only** when a `Quote` term will
   appear — whether from a `quotedIsa` or a raw `#$Quote` in the dump (`convert!`'s
-  `quotes?`): `Quote` as a **reifiable quoting function** — a reified `(Quote X)` mentions
-  `X` as syntax and is held opaque to an identity merge of its referent (vaelii
-  `quoting_function`) — landing every quoted term in the `cycl_expression` tree, plus that
-  syntactic-type hierarchy.  `Quote` reuses the engine's NAT machinery, so a quoted term
-  needs no new engine support to reify and type.  `(quoting_function Quote)` here is what
-  arms the engine's mention-opacity walk; since `Quote` is definitionally quoting, this
-  rides with the functor — present wherever `Quote` is, and nowhere else."
+  `quotes?`).  The engine fixes `Quote` as a quoting function (`sx/quoting-functors`), so
+  in every KB a `(Quote X)` mentions `X` as syntax and is held opaque to an identity merge
+  of `X`'s referent, with no declaration.  The preamble states what the engine leaves to
+  the KB: `Quote` is reifiable, so `(Quote X)` reifies to a mention constant through the
+  engine's NAT machinery; its result is `cycl_expression`; and the `cycl_*` syntactic-type
+  hierarchy holds the collections `cycl-collection-names` maps to."
   '[(reifiable_function Quote)
-    (quoting_function Quote)
     (result Quote cycl_expression)
     (genl cycl_denotational_term          cycl_expression)
     (genl cycl_reifiable_denotational_term cycl_denotational_term)
@@ -201,9 +199,9 @@
   back and nobody could tell them apart.
 
   `afterAdding` / `afterRemoving` hold SubL code rather than knowledge; `sharedNotes`
-  and `myCreationPurpose` are the KB editors' notes to each other; `termOfUnit`
-  restates a NART's own definition, which this reader now writes itself (see
-  `nat-definitions`) and vaelii would otherwise mint.
+  and `myCreationPurpose` are the KB editors' notes to each other; Cyc's `termOfUnit`
+  restates a NART's own definition, which this reader now writes itself as `natFormula`
+  (see `nat-definitions`) and vaelii would otherwise mint.
 
   Only the editorial pair is a **policy**, and `--editorial` reverses it — see
   `drop-flags`."
@@ -254,9 +252,9 @@
   head over constants and literals?
 
   **Depth one only, and the reason is vaelii's, not Cyc's.**  A minted name is tied to
-  its expression by `(termOfUnit K E)`, and `termOfUnit` quotes: nothing inside `E` is
+  its expression by `(natFormula K E)`, and `natFormula` quotes: nothing inside `E` is
   reified.  So a nested `(CollectionIntersection2Fn (SomeFn X) Y)` written into a
-  `termOfUnit` keeps its inner NAT structural, while the same term reached through an
+  `natFormula` keeps its inner NAT structural, while the same term reached through an
   ordinary argument position has its inner NAT reified first — two spellings of one
   expression, and the lookup that ties the name to the term misses.  A term this
   reader cannot name is left structural, which is what it was before."
@@ -467,7 +465,7 @@
     :else              x))
 
 (defn nat-definitions
-  "`(termOfUnit K E)` for every computed **collection** in `names` — the sentence that
+  "`(natFormula K E)` for every computed **collection** in `names` — the sentence that
   ties the minted name to the expression it names.
 
   Written into the corpus rather than left to the engine, which mints its own opaque
@@ -483,7 +481,7 @@
   [names]
   (for [[form {:keys [term role]}] (sort-by (comp pr-str key) names)
         :when (and (seq? form) (= :type role))]
-    (list 'termOfUnit term (apply list (map #(rename-term names %) form)))))
+    (list 'natFormula term (apply list (map #(rename-term names %) form)))))
 
 (defn- unusable
   "The reason `formula` cannot become a vaelii sentence, or nil.  A SubL symbol is
@@ -789,7 +787,7 @@
   anywhere is code however deeply it sits.  Two of the four are reversible from the
   command line and two are not, which `drop-flags` says one reason at a time.
 
-  What is left in `:unread` is the honest remainder — a disjunction, an integrity
+  What is left in `:unread` is the remainder — a disjunction, an integrity
   constraint, a non-ground fact — and every one of those is a shape vaelii has no form
   for, not a shape this reader failed to read.  `:unresolved` is the exception and
   belongs to the dump: a reference its own writer could not resolve."
@@ -821,15 +819,15 @@
      (let [evidence (with-assertions dump-path #(classify (cap %)))
            role-map (roles (dissoc evidence :nat-context :nat-type))
            names    (name-table role-map (:nat-context evidence) (:nat-type evidence))
-           ;; `Quote` is *definitionally* a quoting function, so its preamble — including
-           ;; `(quoting_function Quote)`, which arms the engine's mention-opacity walk —
-           ;; must be present whenever a `Quote` term is, and absent otherwise (the engine's
-           ;; zero-cost-until-declared contract).  Two things put a `Quote` in the output:
-           ;; the `quotedIsa` arm emits one, and a raw `#$Quote` in the dump renames to it
-           ;; and passes through.  Pass 1 saw both — `quotedIsa` as a predicate head, `Quote`
-           ;; as a seen constant — so the union is the exact condition, erring toward
-           ;; emitting (a dropped occurrence over-emits harmlessly; a missed one would leave
-           ;; a live mention un-opaque).
+           ;; The quote preamble is emitted whenever a `Quote` term is in the output, so
+           ;; every `(Quote X)` reifies to a typed mention constant, and is left out
+           ;; otherwise, so a corpus without one states no `cycl_*` vocabulary.  Two things
+           ;; put a `Quote` in the output: the `quotedIsa` arm emits one, and a raw `#$Quote`
+           ;; in the dump renames to it and passes through.  Pass 1 saw both — `quotedIsa`
+           ;; as a predicate head, `Quote` as a seen constant — so the union is the
+           ;; condition.  It errs toward emitting: an occurrence the translation drops
+           ;; emits a preamble nothing uses, and a missed one would leave a `(Quote X)`
+           ;; unreified.
            quotes?  (or (contains? (:head evidence) 'cyc/quotedIsa)
                         (contains? (:seen evidence) 'cyc/Quote))]
        (trove/log! {:level :info :id ::translate

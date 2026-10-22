@@ -7,13 +7,13 @@ here supersedes it.
 
 This document is about what the other four *are*, what survives the trip, and what
 does not. The commands are in the [README](../README.md#the-converter); if you are
-deciding whether a translation is honest enough to build on, this is the argument.
+deciding whether a translation keeps enough to build on, this is the argument.
 
 Nothing here ships an ontology. `scripts/fetch-suites.sh` caches the third-party test
 material — the W3C RDF syntax suites, the OBO Foundry registry, three small real
 ontologies — under a gitignored `.cache/`, once per checkout; the tests that use it skip
 when it is absent, so an ordinary `lein test` needs no network. CI fetches one of those
-items, the W3C suites, because they can be pinned to a revision and carry a contract; see
+items, the W3C suites, because they can be fixed at a revision and carry a contract; see
 [Four syntaxes](#four-syntaxes-and-how-the-reader-picks) below.
 
 `load` takes no format. Every converter here writes the same corpus, so reading one
@@ -74,8 +74,8 @@ line itself, so each reader draws it, and the choice is part of the translation:
 | `atomic` | *nothing* | all of it |
 
 ATOMIC having no monotonic half is the point of importing it. Every tuple is what
-people said usually follows, and there is no other strength that is honest about
-that.
+people said usually follows, and `:default` is the only strength that claims no more
+than that.
 
 ## `rdf` — the Horn fragment of OWL
 
@@ -115,9 +115,9 @@ a run reports: a run prints what it actually reached beside each floor, and the 
 raised when a fix lands and never lowered to let a change pass.
 
 Both columns are checked by the `conformance` job in `.github/workflows/test.yml`, which
-fetches the suites at the revision pinned in `scripts/fetch-suites.sh` and fails when the
-corpus did not land rather than skipping quietly. The pin is what lets a ratchet mean
-anything: measured against a suite free to move, these numbers would be a claim about the
+fetches the suites at the revision `scripts/fetch-suites.sh` names and fails when the
+corpus did not land rather than skipping quietly. The fixed revision is what lets a
+ratchet mean anything: measured against a suite free to move, these numbers would be a claim about the
 week the run happened.
 
 `turtle/triples` takes `:strict? true` to turn recovery off, which is what the suites

@@ -134,8 +134,8 @@
 (defmacro with-cleared-kb
   "For a test that intentionally mutates the store and then hands it to a second KB over
   the same spaces — which is what importing a dump is: build, run the body, then FLUSH and
-  assert the store is empty.  Flushing is the honest teardown when the store itself is
-  under test.
+  assert the store is empty.  A test whose subject is the store itself tears down by
+  flushing.
 
     (with-cleared-kb [kb tu/fresh] …)"
   [[sym build-fn] & body]

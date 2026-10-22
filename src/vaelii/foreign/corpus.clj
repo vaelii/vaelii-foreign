@@ -40,7 +40,7 @@
   memberships, then everything else — and the reason is not speed:
 
   * term definitions first is an **identity** argument.  `(reifiable_function F)` and
-    `(termOfUnit K E)` decide which constant a non-atomic term reifies to, and every
+    `(natFormula K E)` decide which constant a non-atomic term reifies to, and every
     later sentence mentioning that term is reified against them as they stand then.
     Arriving late, they mint a second constant for an expression that already has one —
     or miss the reification altogether.
@@ -49,12 +49,12 @@
     transitive closure and everything else reads that closure back, so interleaved, each
     fact pays for a closure the next edge is about to retire.
 
-  * memberships before facts is a **correctness** argument.  `arg` is open-world
-    about an argument with no type at all and closed about one that has any, so a fact
-    checked before its arguments' memberships have arrived is refused on a partial
-    answer — and the same corpus in a different order would keep a different set of
-    sentences.  Loading every membership first is what makes \"what types does this term
-    have\" complete before anything asks.
+  * memberships before facts puts each term's types in place before the first fact
+    naming it is checked.  The engine convicts a symbol argument only by a type the
+    taxonomy separates from the declared one, and under its entailing reading it mints
+    the declared membership instead.  A convicted fact is stored and held inert, and the
+    settle decides it again when a membership it read moves, so the stored set and
+    belief are the same in any load order.
 
   A refusal is **counted, not swallowed**: which of vaelii's checks a foreign ontology
   trips is the most useful thing an import has to say about it."
@@ -324,14 +324,14 @@
   reifies at all, which constant already names an expression, and what a freshly minted
   constant is an instance of.  Every one is read *while storing something else*, and
   none applies retroactively."
-  '#{reifiable_function unreifiable_function termOfUnit result genlResult})
+  '#{reifiable_function unreifiable_function natFormula result genlResult})
 
 (defn term-definition?
   "Does `sentence` define a non-atomic term rather than use one?
 
   Its own layer, ahead of everything, because it decides **term identity**: a sentence
   mentioning `(F a)` structurally is reified against the declarations as they stand at
-  that moment.  Arriving first, a `(termOfUnit K (F a))` is adopted; arriving after, it
+  that moment.  Arriving first, a `(natFormula K (F a))` is adopted; arriving after, it
   mints a second constant for an expression that already has one — same corpus, two
   terms, and a collision to reconcile, for no reason but file order.  A
   `reifiable_function` that arrives late is worse still: the NAT was stored as a compound
@@ -414,7 +414,9 @@
   throws.  `:on-refusal` is handed each one as `{:sentence :context :reason :phase :ex}`,
   which is what turns that tally into a diagnosis: a count says a check fired, only the
   sentence says whether the ontology disagrees with us or we are wrong.  Sampling rather
-  than keeping every one is the caller's decision, so nothing is retained here.
+  than keeping every one is the caller's decision, so nothing is retained here.  A fact
+  whose argument fails its declared type is not a refusal: `assert` stores it held inert,
+  it counts under `:asserted`, and `v/violations` lists it as `:inert-argument`.
 
   Named `load-dir!` rather than `load-dir` because a failed load leaves the KB partly
   populated — the one irreversible thing about it."

@@ -2,11 +2,11 @@
 # scripts/lint.sh — unified static-analysis runner behind `lein lint`.
 #
 # Trimmed port of vaelii core's scripts/lint.sh. This artifact has no doc-gen
-# system, so the doc / unused-publics gates don't apply: the checks here are
+# system, so the doc / unused-publics checks don't apply: the checks here are
 # versions + kondo + shellcheck + cljfmt + reflect + prose (its unit suite
-# runs via `lein test`, not this gate).  `prose` holds comments and docs to
+# runs via `lein test`, not this script).  `prose` holds comments and docs to
 # literal technical language against scripts/prose-baseline.txt, the rule the
-# engine repo states in CONTRIBUTING.md §3.9.
+# engine repo states in CONTRIBUTING.md §3.10.
 #
 #
 # Each check runs and its output + exit code are captured; a
@@ -104,33 +104,33 @@ check() {
 
 printf '%slint%s\n' "$BOLD" "$RST"
 
-# kondo_version_note — say so when the local clj-kondo is not the one CI pins.
+# kondo_version_note — say so when the local clj-kondo is not the one CI uses.
 #
 # The kondo check runs whatever binary is on PATH, and CI runs the version
 # `.github/workflows/lint.yml` installs.  Nothing made those the same, so a local
 # `lint: N/N clean` could sit against a red CI lint: a newer kondo infers more and
 # flags what an older one passes.
 #
-# A NOTE and never a failure.  The pin moves whenever the workflow is
-# edited, and a package manager can lag it for weeks — so there are windows where no
-# `brew install` can satisfy a hard check, and refusing to run the linter then costs
-# more than the drift it would report.  Silent when the two agree, and silent when
-# either side cannot be read: an unreadable pin is a fact about this script's
-# parsing, not a finding about the tree.  The engine carries the same check; this
-# one parses an `install-clj-kondo --version` argument where that one reads a
+# A NOTE and never a failure.  CI's version moves whenever the workflow is
+# edited, and a package manager can lag it for weeks — so there are time windows where
+# no `brew install` can satisfy a hard check, and refusing to run the linter then
+# costs more than the drift it would report.  Silent when the two agree, and silent
+# when either side cannot be read: an unreadable CI version is a fact about this
+# script's parsing, not a finding about the tree.  The engine carries the same check;
+# this one parses an `install-clj-kondo --version` argument where that one reads a
 # `clj-kondo:` action input.
 kondo_version_note() {
-  local pin have
+  local ci_ver have
   command -v clj-kondo >/dev/null 2>&1 || return 0
-  pin="$(sed -n 's/.*install-clj-kondo .*--version[= ]\([0-9][0-9.]*\).*/\1/p' \
+  ci_ver="$(sed -n 's/.*install-clj-kondo .*--version[= ]\([0-9][0-9.]*\).*/\1/p' \
            .github/workflows/lint.yml 2>/dev/null | head -1)"
   have="$(clj-kondo --version 2>/dev/null \
             | grep -oE '[0-9]{4}\.[0-9]{2}\.[0-9]{2}' | head -1)"
-  [[ -n "$pin" && -n "$have" && "$pin" != "$have" ]] || return 0
-  printf '  %-15s %s! local %s, CI pins %s — CI can fail on what this passes%s\n' \
-         '' "$YELLOW" "$have" "$pin" "$RST"
+  [[ -n "$ci_ver" && -n "$have" && "$ci_ver" != "$have" ]] || return 0
+  printf '  %-15s %s! local %s, CI uses %s — CI can fail on what this passes%s\n' \
+         '' "$YELLOW" "$have" "$ci_ver" "$RST"
   printf '  %-15s %s  brew upgrade borkdude/brew/clj-kondo, or install-clj-kondo --version %s%s\n' \
-         '' "$DIM" "$pin" "$RST"
+         '' "$DIM" "$ci_ver" "$RST"
 }
 
 # Head start: reflect runs while the (non-lein) kondo + shellcheck checks stream below.

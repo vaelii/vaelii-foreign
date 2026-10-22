@@ -107,7 +107,7 @@
      (is (nil? (tu/corpus-file dir "CxAtomicSocial.monotonic.txt")))
      (is (nil? (tu/corpus-file dir "CxAtomicPhysical.monotonic.txt")))
      (is (nil? (tu/corpus-file dir "CxAtomic.monotonic.txt"))
-         "every tuple is what people said usually follows, and no other strength is honest"))))
+         "every tuple is what people said usually follows, which is `:default` and nothing stronger"))))
 
 (deftest each-relation-family-is-its-own-context
   (converted

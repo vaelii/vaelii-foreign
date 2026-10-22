@@ -16,6 +16,34 @@ something it used to drop does not break anything, but it does mean a corpus con
 before and after are not the same corpus, and anybody comparing two runs across such a
 change wants to know which one moved.
 
+## [0.28.0] — 2026-10-21
+
+**The Cyc reader writes a computed collection's definition as `natFormula`.** Engine
+`termOfUnit` is renamed `natFormula`, so `cyc/nat-definitions` writes `(natFormula K E)`
+into `CxBaseKB` and `corpus/term-functors` loads `natFormula` in the `:terms` layer. Cyc's
+own `termOfUnit` assertions are still dropped as `:nart-definition`. A corpus converted
+by an earlier version carries `(termOfUnit K E)`, which the engine no longer reads, so
+each minted type name splits from its expression; convert the dump again. *Class:*
+translation change — a corpus converted before and after differs in every definition's
+predicate.
+
+**The Cyc reader's quote preamble states no `quoting_function`.** Engine 0.28.0 removes
+the predicate and fixes `Quote` and `Quasiquote` as the quoting functions, so a `(Quote
+X)` is a mention, held opaque to an identity merge of `X`'s referent, in every KB from the
+first assert. `cyc/quote-vocabulary` holds `(reifiable_function Quote)`, `(result Quote
+cycl_expression)` and the `cycl_*` hierarchy, and `convert!` emits it into `CxBaseKB` only
+when the corpus holds a `Quote` term. A corpus converted by an earlier version carries
+`(quoting_function Quote)` in `CxBaseKB`, which engine 0.28.0 gives no meaning; convert the
+dump again to drop it. *Class:* translation change — a corpus converted before and after
+differs by that one sentence.
+
+**`load-dir!` counts a fact whose argument fails its declared type as asserted.** Engine
+0.28.0 stores such a fact held inert where `assert` threw `:arg-type`, `:arg-genl`,
+`:inter-arg-type` or `:quoted-arg-type`, so those reasons leave `load-dir!`'s `:refusals`,
+the facts count under `:asserted`, and `v/violations` lists each as `:inert-argument`. The
+`load-dir!` docstring states it, and the membership layer's docstring states the rule the
+engine convicts by. *Class:* none — no reader, corpus or format change.
+
 ## [0.19.0] — 2026-09-13
 
 **The plugin moves to Clojure 1.12.6 and tracks engine 0.19.0.** No reader map key,

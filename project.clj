@@ -1,7 +1,13 @@
-(defproject com.vaelii/vaelii-foreign "0.19.0"
+;; The major version of the JDK evaluating this file, which is the one leiningen
+;; launches the project JVM on: `:jvm-opts` below names a flag 21 refuses.
+(def jdk-major
+  (Integer/parseInt
+   (second (re-find #"^(?:1\.)?(\d+)" (System/getProperty "java.specification.version")))))
+
+(defproject com.vaelii/vaelii-foreign "0.28.0"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
-                vaelii's plugin seam."
+                vaelii's plugin extension point."
   :url "https://github.com/vaelii/vaelii-foreign"
   ;; The permissive layer around the SSPL core.  This artifact reads formats whose own
   ;; reference implementations Cycorp published under Apache-2.0, and a corpus converted
@@ -28,7 +34,7 @@
   ;; `vaelii.impl.*`, which vaelii is free to change — that cost is the plugin's to
   ;; carry, and is the reason a bridge lives out here rather than in the engine.
   :dependencies [[org.clojure/clojure "1.12.6"]
-                 [com.vaelii/vaelii "0.19.0"]
+                 [com.vaelii/vaelii "0.28.0"]
                  ;; Arrives transitively through vaelii and is required directly by code
                  ;; here — trove carries the conversion's progress log — so naming it
                  ;; makes it a promise rather than an accident of somebody else's
@@ -41,13 +47,21 @@
   :test-selectors {:suite   :suite
                    :offline (complement :suite)}
   :target-path "target/%s"
+  ;; Declaring `:jvm-opts` replaces leiningen's `^:displace` `:base` vector, which
+  ;; drops the C1-only cap `:base` copies from a LEIN_JVM_OPTS naming "Tiered", and
+  ;; restores `:base`'s `-XX:-OmitStackTraceInFastThrow` so a test failure names its
+  ;; site. The two `--` flags silence the JDK 24+ warnings for JNA's native loads and
+  ;; aircompressor's (nippy LZ4) `sun.misc.Unsafe` calls; the Unsafe flag exists from
+  ;; 23, and 21 refuses to boot with it. Core's project.clj has the detail.
+  :jvm-opts ~(cond-> ["-XX:-OmitStackTraceInFastThrow" "--enable-native-access=ALL-UNNAMED"]
+               (<= 23 jdk-major) (conj "--sun-misc-unsafe-memory-access=allow"))
   ;; Same as the engine's: an unhinted interop call is a build-time failure rather than
   ;; a reflective lookup paid at runtime.
   :global-vars {*warn-on-reflection* true}
-  ;; Static-analysis gates ported from the engine, trimmed to what applies out here
-  ;; (the glossary / doc-drift / unused-publics gates are coupled to core's KB and
+  ;; Static-analysis checks ported from the engine, trimmed to what applies out here
+  ;; (the glossary / doc-drift / unused-publics checks are coupled to core's KB and
   ;; baselines and are not carried).
-  ;;   lein lint    — versions + kondo + shellcheck + cljfmt + reflect + authorship
+  ;;   lein lint    — versions + kondo + shellcheck + cljfmt + reflect + prose
   ;;                  via scripts/lint.sh, one ✓/✗ line per check, runs all (not
   ;;                  fail-fast).  VERBOSE=1 dumps each check's full output.
   ;;   lein fix     — the only auto-repair: cljfmt rewrites in place.  kondo and
@@ -66,8 +80,6 @@
             ;; the prose budget: metaphor and aphorism against scripts/prose-baseline.txt.
             ;; `lein lint-prose -- --update` lowers a stale budget; it never raises one
             "lint-prose"      ["shell" "python3" "scripts/check-prose.py"]
-            ;; the `authorship` CI gate's rules, against synthetic commits — the gate
-            ;; runs only on a pull request, so this is where they are exercised first
             "lint"            ["shell" "bash" "scripts/lint.sh"]
             "fix"             ["cljfmt" "fix"]
             "gate"            ["do" ["lint"] ["test"]]
@@ -78,6 +90,9 @@
             "convert"         ["with-profile" "+convert" "run"]}
   ;; `shell` task: lets the lint aliases run scripts/*.sh from lein.
   :plugins [[lein-shell "0.5.0"]]
+  ;; The lein launcher exports CLASSPATH (its own jar), so every nested `lein` under a
+  ;; `lein shell` alias prints "You have $CLASSPATH set"; nil drops it from the child.
+  :shell {:env {"CLASSPATH" nil}}
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[nrepl "1.7.0"]]}
              ;; cljfmt isolated in its own profile so the plugin's deps stay off the
@@ -102,7 +117,7 @@
              ;; `load-dir!` wants a heap and a disk KB.  Reflection is flipped off for
              ;; the same reason it is off for tests: this profile runs the CLI at a
              ;; person, and core's own warnings are not theirs to read.  `lein check`
-             ;; keeps the flag on, so the reflect gate still sees src.
+             ;; keeps the flag on, so the reflect check still sees src.
              :convert {:jvm-opts ["-Xmx12g"]
                        :global-vars {*warn-on-reflection* false}}}
   :repl-options {:init-ns vaelii.foreign.convert})

@@ -9,10 +9,10 @@
 # `vaelii.foreign.suite`). The repo owns the hand-authored fixtures
 # under test/resources/ — those run offline, always.
 #
-# ONE ITEM IS FETCHED BY CI, and it is the one that can be pinned. `rdf-tests`
+# ONE ITEM IS FETCHED BY CI, and it is the one with a fixed revision. `rdf-tests`
 # carries a contract — every valid document in all four W3C suites reads, at
 # 100%, or an ontology somebody publishes will not open — and a contract that
-# runs only when somebody remembers it is a measurement, not a gate. The
+# runs only when somebody remembers it is a measurement, not a required check. The
 # `conformance` job in .github/workflows/test.yml fetches this item at
 # $rdf_tests_ref below and runs `lein test :suite`. The OBO items stay local:
 # they are PURLs to unversioned ontologies republished on the Foundry's
@@ -96,21 +96,21 @@ list_items() {
 # on a fresh checkout before anything is built.
 
 # The revision `conformance_test`'s floors were measured against, and the one CI
-# fetches. Pinned rather than tracked, because a floor is a claim about this
+# fetches. A fixed revision rather than a tracked branch, because a floor is a claim about this
 # reader: let the corpus move under it and a red build means the W3C added a
 # test, which is a fact about the week rather than about the code. Moving the
-# pin is an edit here plus a `lein test :suite` to re-measure, and the numbers
+# revision is an edit here plus a `lein test :suite` to re-measure, and the numbers
 # it prints belong in the commit that moves it.
 rdf_tests_ref=767554e135eb6665949d870e6fa7bbc813837293
 
 fetch_rdf_tests() {
   # A blobless sparse checkout of rdf/rdf11 alone. The whole repo is 41 MB and
   # carries SPARQL and SHACL suites this repo has no reader for; this form is
-  # 28 MB and is still a git checkout, so moving the pin later is a fetch rather
+  # 28 MB and is still a git checkout, so moving the revision later is a fetch rather
   # than a re-download.
   #
   # `init` + `fetch <sha>` and not `clone --depth 1`, because a shallow clone can
-  # only land on a branch tip and the whole point of the pin is to land off it.
+  # only land on a branch tip and the fixed revision exists to land off it.
   local dst="$cache/rdf-tests"
   git init -q "$dst"
   git -C "$dst" remote remove origin 2>/dev/null || true
@@ -120,16 +120,16 @@ fetch_rdf_tests() {
   git -C "$dst" checkout -q FETCH_HEAD
 }
 
-check_rdf_tests_pin() {
+check_rdf_tests_revision() {
   # A cache sitting at some other revision is the quiet version of the failure the
-  # pin exists to stop — the floors pass or fail against a corpus nobody named, and
+  # fixed revision exists to stop — the floors pass or fail against a corpus nobody named, and
   # a local run then disagrees with CI for a reason neither prints. Say so; don't
   # refetch 28 MB somebody may have moved deliberately.
   local at
   at=$(git -C "$cache/rdf-tests" rev-parse HEAD 2>/dev/null || echo "unknown")
   if [ "$at" != "$rdf_tests_ref" ]; then
-    echo "           ⚠ at ${at:0:12}, pinned at ${rdf_tests_ref:0:12} — the floors were"
-    echo "             measured at the pin.  Re-fetch: $0 --force rdf-tests"
+    echo "           ⚠ at ${at:0:12}, expected ${rdf_tests_ref:0:12} — the floors were"
+    echo "             measured at the expected revision.  Re-fetch: $0 --force rdf-tests"
   fi
 }
 
@@ -194,7 +194,7 @@ while IFS= read -r line; do
 
   if [ -e "$cache/$target" ]; then
     echo "  cached   $name"
-    [ "$name" = "rdf-tests" ] && check_rdf_tests_pin
+    [ "$name" = "rdf-tests" ] && check_rdf_tests_revision
     skipped=$((skipped + 1))
     continue
   fi
