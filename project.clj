@@ -4,7 +4,7 @@
   (Integer/parseInt
    (second (re-find #"^(?:1\.)?(\d+)" (System/getProperty "java.specification.version")))))
 
-(defproject com.vaelii/vaelii-foreign "0.28.0"
+(defproject com.vaelii/vaelii-foreign "0.28.1-SNAPSHOT"
   :description "Foreign-format readers for vaelii — OpenCyc, RDF/OWL, WordNet, OBO and
                 ATOMIC, each translated into one corpus format, discovered through
                 vaelii's plugin extension point."
